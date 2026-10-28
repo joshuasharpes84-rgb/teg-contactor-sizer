@@ -9,6 +9,11 @@ compared side by side; industry rules of thumb (GPSA) appear only as a check.
 > VS Code or any editor, and extend it for your own case with your AI assistant. This README is written for
 > both of you. Taking these tools further is a free service of
 > [Sharpes Process Engineering](https://jsharpes-portfolio.netlify.app); the site's Ask box can point you to the right starting file.
+>
+> **License:** [MIT](LICENSE) for the code and original text: use, modify and share freely, keeping the
+> copyright notice. Provided as is, without warranty of any kind. It is an engineering study aid, not a
+> substitute for a design checked and sealed by a licensed professional engineer.
+> Not covered: the vessel and tray datasheet pages embedded in the tool, reproduced from Coulson & Richardson's *Chemical Engineering* Vol. 6, Appendix G, which remains its owner's.
 
 **Who this file is for:** the engineer using the tool, and that engineer's AI assistant. Hand it to an
 assistant with your case and it has what it needs to check, challenge or adapt the method.
