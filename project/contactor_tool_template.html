@@ -1,0 +1,1253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Sizes a TEG gas-dehydration contactor three ways (structured packing, bubble-cap trays, random packing) from sourced methods, ranks every tabulated packing, prices each option and prints a filled datasheet.">
+<title>TEG Contactor Sizer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: datasheet header + basis strip, sticky control rail left, collapsible estimate panels right.
+   Deck references are by deck + slide title, never slide number (slides get reordered). */
+:root {
+  --bg: #eef1f3; --panel: #ffffff; --ink: #16202a; --muted: #5a6876; --rule: #d3dae0;
+  --e1: #1f6f8b; --e2: #b5651d; --gpsa: #7a4fa0; --eq: #2c3e50;
+  --ok: #2e7d4f; --ok-bg: #e3f2e9; --warn: #9a6a00; --warn-bg: #fbf1d6; --bad: #b3261e; --bad-bg: #fbe4e2;
+  --chip: #e4e9ed; --grid: #e6eaee;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11171c; --panel: #192128; --ink: #e3e9ee; --muted: #93a1ad; --rule: #2c3842;
+  --e1: #5fb4d3; --e2: #e39a55; --gpsa: #b993dc; --eq: #c9d4dd;
+  --ok: #6fcf97; --ok-bg: #173325; --warn: #e8c15c; --warn-bg: #352b10; --bad: #f2867d; --bad-bg: #3a1a18;
+  --chip: #222c34; --grid: #24303a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11171c; --panel: #192128; --ink: #e3e9ee; --muted: #93a1ad; --rule: #2c3842;
+  --e1: #5fb4d3; --e2: #e39a55; --gpsa: #b993dc; --eq: #c9d4dd;
+  --ok: #6fcf97; --ok-bg: #173325; --warn: #e8c15c; --warn-bg: #352b10; --bad: #f2867d; --bad-bg: #3a1a18;
+  --chip: #222c34; --grid: #24303a; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 14px/1.5 var(--f-body); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { display: grid; gap: 10px; margin-bottom: 18px }
+.eyebrow { font: 500 11px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+h1 { font: 700 30px/1.1 var(--f-display); margin: 0; text-wrap: balance }
+h2 { font: 600 20px/1.2 var(--f-display); margin: 0; text-wrap: balance; display: inline }
+h3 { font: 600 15px/1.3 var(--f-display); margin: 0; letter-spacing: .01em; display: inline }
+.lede { color: var(--muted); max-width: 72ch; margin: 0 }
+.basis { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { background: var(--chip); border-radius: 4px; padding: 4px 8px; font: 12px/1.3 var(--f-mono); font-variant-numeric: tabular-nums }
+.chip b { font-weight: 500; color: var(--muted); margin-right: 4px }
+.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; align-items: start }
+@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr) } }
+aside { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px; display: grid; gap: 14px }
+@media (min-width: 901px) and (min-height: 960px) { aside { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - 24px); overflow-y: auto } }
+fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 8px }
+legend { font: 600 12px/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; padding: 0 }
+.ctl { display: grid; gap: 3px }
+.ctl label, .ctl .lab { display: flex; justify-content: space-between; gap: 8px; font-size: 13px }
+.ctl output { font: 500 13px var(--f-mono); font-variant-numeric: tabular-nums }
+.ctl small, small.note { color: var(--muted); font-size: 11.5px; line-height: 1.35 }
+input[type=range] { width: 100%; accent-color: var(--e1) }
+select { width: 100%; font: inherit; padding: 5px 6px; background: var(--panel); color: var(--ink); border: 1px solid var(--rule); border-radius: 4px }
+.seg { display: flex; flex-wrap: wrap; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden }
+.seg button { flex: 1; font: 12px var(--f-body); padding: 5px 4px; border: 0; background: transparent; color: var(--ink); cursor: pointer; min-width: 0 }
+.seg button + button { border-left: 1px solid var(--rule) }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel) }
+.tog { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer }
+.tog input { margin-top: 3px; accent-color: var(--e1) }
+:focus-visible { outline: 2px solid var(--e1); outline-offset: 2px }
+main { display: grid; gap: 18px; min-width: 0 }
+/* Collapsible panels and sub-blocks */
+details.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; min-width: 0 }
+details.panel > summary { list-style: none; cursor: pointer; padding: 14px 16px; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px }
+details.panel[open] > summary { border-bottom: 1px solid var(--rule) }
+details.panel > .body { padding: 16px; display: grid; gap: 14px; min-width: 0 }
+summary::-webkit-details-marker { display: none }
+summary .chev { font: 500 12px var(--f-mono); color: var(--muted); margin-right: 6px; display: inline-block; transition: transform .15s }
+details[open] > summary .chev { transform: rotate(90deg) }
+details.sub { border-top: 1px dashed var(--rule); padding-top: 10px; min-width: 0 }
+details.sub > summary { list-style: none; cursor: pointer; margin-bottom: 8px }
+details.how > summary { list-style: none; cursor: pointer; font: 500 11px var(--f-mono); color: var(--muted); letter-spacing: .04em }
+details.how > summary::before { content: "▸ "; } details.how[open] > summary::before { content: "▾ "; }
+details.how > div { color: var(--muted); font-size: 11.5px; line-height: 1.4; margin-top: 3px }
+.tag { font: 500 11px/1 var(--f-mono); padding: 4px 7px; border-radius: 3px; letter-spacing: .04em; text-transform: uppercase }
+.tag.e1 { color: var(--e1); border: 1px solid currentColor } .tag.e2 { color: var(--e2); border: 1px solid currentColor } .tag.g { color: var(--gpsa); border: 1px solid currentColor }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 10px }
+.kpi { border-top: 2px solid var(--rule); padding-top: 6px; display: grid; gap: 2px }
+.kpi .v { font: 500 22px/1.15 var(--f-mono); font-variant-numeric: tabular-nums }
+.kpi .v small { font-size: 12px; color: var(--muted); margin-left: 3px }
+.kpi .k { font-size: 12px; color: var(--muted) }
+.kpi.e1 { border-color: var(--e1) } .kpi.e2 { border-color: var(--e2) }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px }
+figure { margin: 0; display: grid; gap: 6px; min-width: 0 }
+figcaption { font-size: 12px; color: var(--muted) }
+svg.chart { width: 100%; height: auto; display: block }
+svg text { font-family: var(--f-mono); font-size: 10.5px; fill: var(--muted) }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11.5px; color: var(--muted) }
+.legend i { display: inline-block; width: 14px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 4px }
+.tbl { overflow-x: auto }
+table { border-collapse: collapse; width: 100%; font-size: 13px }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: top }
+th { font: 600 11px var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted) }
+td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap }
+tr.sel td { background: var(--chip) }
+.pill { display: inline-block; font: 600 11px/1 var(--f-mono); padding: 3px 6px; border-radius: 3px; white-space: nowrap }
+.pill.ok { color: var(--ok); background: var(--ok-bg) } .pill.warn { color: var(--warn); background: var(--warn-bg) } .pill.bad { color: var(--bad); background: var(--bad-bg) }
+.walk { display: grid; gap: 0 }
+.walk div { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--rule); font-size: 13px }
+@media (max-width: 560px) { .walk div { grid-template-columns: minmax(0, 1fr); gap: 2px } }
+.walk div b { font: 500 11.5px/1.35 var(--f-mono); color: var(--muted) }
+cite { font-style: normal; color: var(--muted) }
+.banner { padding: 10px 12px; border-radius: 4px; font-size: 13px; background: var(--bad-bg); color: var(--ink); border-left: 3px solid var(--bad) }
+.banner.warn { background: var(--warn-bg); border-left-color: var(--warn) }
+.note { font-size: 12.5px; color: var(--muted); max-width: 90ch; margin: 0 }
+ol.find { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 13px; max-width: 95ch }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+[hidden] { display: none !important }
+.cmp td:first-child { font-weight: 500 }
+.cmp td.g, .cmp th.g { color: var(--gpsa) }
+.lead { font-size: 13px; max-width: 95ch; margin: 0 }
+/* Operating-case inputs: sliders with band ends; typed fields refuse out-of-range values */
+.band { display: flex; justify-content: space-between; font: 10.5px/1 var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums }
+.ctl.row { grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 8px }
+.ctl.row > :not(label):not(.numin) { grid-column: 1 / -1 }
+.ctl.row label { display: block }
+.ctl.row label output { display: block; color: var(--muted); font-size: 11px }
+.numin { display: inline-flex; align-items: center; gap: 5px }
+.numin i { font: normal 11px var(--f-mono); color: var(--muted); min-width: 52px }
+input[type=number] { width: 72px; font: 500 13px var(--f-mono); padding: 4px 6px; background: var(--panel); color: var(--ink); border: 1px solid var(--rule); border-radius: 4px; font-variant-numeric: tabular-nums }
+input[type=number].bad { border-color: var(--bad); background: var(--bad-bg) }
+small.err { color: var(--bad); font-size: 11.5px }
+.dsbtn { font: 600 13px var(--f-body); padding: 7px 14px; border: 1px solid var(--e1); border-radius: 4px; background: var(--e1); color: var(--panel); cursor: pointer }
+.dsbtn:disabled { opacity: .6; cursor: progress }
+legend.leg-row { display: flex; justify-content: space-between; align-items: baseline; width: 100%; gap: 8px }
+legend.leg-row .linkbtn { font: 500 11px var(--f-body); letter-spacing: 0; text-transform: none }
+details.grp { border-top: 1px solid var(--rule); padding-top: 10px; display: grid; gap: 14px }
+details.grp > summary { list-style: none; cursor: pointer; font: 600 12px/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+details.grp > summary::before { content: "▸ "; } details.grp[open] > summary::before { content: "▾ "; }
+details.grp[open] > summary { margin-bottom: 4px }
+fieldset details.grp { border-top: 1px dashed var(--rule) }
+/* Sources panel: cover thumbnails (PDF page 1 / deck slide 1) linking to the local files */
+details.srcs > summary { list-style: none; cursor: pointer; font: 600 12px/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+details.srcs > summary::before { content: "▸ "; } details.srcs[open] > summary::before { content: "▾ "; }
+.srcgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 10px }
+.src { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; align-items: start; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 8px; color: inherit; text-decoration: none }
+a.src:hover { border-color: var(--e1) }
+.src img, .src .ico { width: 52px; height: 68px; object-fit: cover; object-position: top; border: 1px solid var(--rule); border-radius: 3px; background: var(--chip) }
+.src img.wide { height: 30px }
+.src .ico { display: grid; place-items: center; font: 600 11px var(--f-mono); color: var(--muted) }
+.src b { display: block; font: 600 13px/1.25 var(--f-display) }
+.src span { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.35; margin-top: 2px }
+.src i.k { font: normal 10px var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--e1) }
+/* Selection decisions: amber when shifted from the BoD case; ● marks the map's lead type */
+.chip.dec.shift { background: var(--warn-bg); box-shadow: inset 0 0 0 1px var(--warn) }
+.chip .was { color: var(--warn); margin-left: 6px; font-size: 11px }
+.seg button.lead::after { content: " ●"; color: var(--ok) }
+.seg button.lead.shift::after { color: var(--warn) }
+.linkbtn { font: inherit; color: var(--e1); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Glycol Dehydrator · mini FEL-1 · contactor, stage 1</div>
+  <h1>TEG Contactor Sizer</h1>
+  <p class="lede">Set the operating case on the left; every internals type is re-sized from sourced methods (decks first, then Perry's and Ludwig). GPSA appears only as a type-matched comparison.</p>
+  <details class="srcs">
+    <summary>Sources behind this tool <span id="srcCount"></span></summary>
+    <div class="srcgrid" id="srcGrid"></div>
+  </details>
+</header>
+
+<div class="layout">
+<aside aria-label="Design inputs">
+  <fieldset>
+    <legend class="leg-row"><span>Operating case</span><button type="button" class="linkbtn" id="resetAll" title="Restore every input to its default">Reset all to defaults</button></legend>
+    <div class="ctl">
+      <label for="Q">Gas rate <output id="QO"></output></label>
+      <input id="Q" type="range" min="10" max="50" step="0.5" value="25">
+      <div class="band"><span>10</span><span>BoD 25</span><span>50 MMSCFD</span></div>
+      <details class="how"><summary>Band</summary><div>Placeholder band for your call: no source sets an operating range on gas rate. Diameter scales with √Q; stages don't change.</div></details>
+    </div>
+    <div class="ctl">
+      <label for="P">Contactor pressure <output id="PO"></output></label>
+      <input id="P" type="range" min="420" max="1435" step="5" value="1000">
+      <div class="band"><span>420</span><span>BoD 1,000</span><span>1,435 psig</span></div>
+      <details class="how"><summary>Band</summary><div>Top: GPSA Sec 20 says Fig 20-3 "may be inadequate" above 10 000 kPa (abs). Bottom: 3000 kPa (abs), the lowest isobar digitized from Fig 20-3. Gas density is PC-SAFT (EOS workflow pick) at each point.</div></details>
+    </div>
+    <div class="ctl">
+      <label for="T">Contactor temperature <output id="TO"></output></label>
+      <input id="T" type="range" min="61" max="122" step="1" value="100">
+      <div class="band"><span>61</span><span>BoD 100</span><span>122 °F</span></div>
+      <details class="how"><summary>Band</summary><div>GPSA Sec 20: below about 16 °C, TEG viscosity reduces mass-transfer efficiency and "should be avoided"; above about 50 °C, TEG vaporization losses stop being minimal.</div></details>
+    </div>
+    <div class="ctl row">
+      <label for="Wout">Outlet water spec</label>
+      <span class="numin"><input id="Wout" type="number" min="0.1" step="0.5" value="7"><i>lb/MMSCF</i></span>
+      <small class="err" hidden></small>
+    </div>
+    <div class="ctl row">
+      <label for="wLean">Lean TEG</label>
+      <span class="numin"><input id="wLean" type="number" min="98" max="99.9" step="0.05" value="98.6"><i>wt%</i></span>
+      <small class="err" hidden></small>
+      <details class="how"><summary>Method</summary><div>98.6 wt% is GPSA's figure for a 204 °C atmospheric reboiler (basis data). Anything higher needs stripping gas.</div></details>
+    </div>
+    <div class="ctl row">
+      <label for="circ">Circulation <output id="circO"></output></label>
+      <span class="numin"><input id="circ" type="number" min="1" max="6" step="0.1" value="3"><i>gal/lb</i></span>
+      <small class="err" hidden></small>
+      <details class="how"><summary>Method</summary><div>Rules of Thumb p.328 (a deck reference): 1.5–3 gal TEG/lb water removed.</div></details>
+    </div>
+    <div class="ctl">
+      <label for="foul">Glycol fouling tier <output id="foulO"></output></label>
+      <input id="foul" type="range" min="0" max="3" step="1" value="0">
+      <div class="band"><span>Clean</span><span>Moderate</span><span>Dirty</span><span>Severe</span></div>
+      <small id="foulNote"></small>
+      <details class="how"><summary>Tiers</summary><div>Tier basis set by you (2026-10-26). Descriptors are qualitative (GPSA Sec 20; vendor overhaul findings); no source found gives numeric glycol-quality limits or packing cleaning intervals. <b>Proposed, awaiting your sign-off:</b> Dirty and Severe make plugging "a real issue"; the distributor's minimum solids-handling rating; and the internals replacement intervals used in lifecycle cost.</div></details>
+    </div>
+    <details class="how"><summary>Why some inputs are typed</summary><div>Sliders carry the operating case. Typed fields are the ones you move less: the spec is a contract value, and lean purity and circulation move diameter less than 4% across their ranges. Out-of-range entries are refused, not clamped. Gas composition is fixed (illustrative, SG 0.633) until it's set.</div></details>
+  </fieldset>
+
+  <fieldset>
+    <legend>Internals</legend>
+    <div class="ctl">
+      <div class="seg" id="typ" role="group" aria-label="Contactor internals">
+        <button type="button" data-v="st" aria-pressed="true">Structured</button><button type="button" data-v="bc">Bubble cap</button><button type="button" data-v="rd">Random</button>
+      </div>
+      <small id="typNote"></small>
+    </div>
+    <div class="ctl">
+      <label for="surf">Internals material</label>
+      <select id="surf">
+        <option value="ss" selected>Stainless 304L/316L (bright metal)</option>
+        <option value="cs">Carbon steel (oxidized metal)</option>
+        <option value="treated">Surface-treated metal</option>
+        <option value="none">Not listed</option>
+      </select>
+      <details class="how"><summary>Method</summary><div>MOC methodology, segmented by component (Step 1a): the shell is carbon steel with a corrosion allowance; the packing is stainless, because thin packing sheet can't carry a corrosion allowance (Step 6) and CO₂ in the gas (composition still open) is the governing unknown (Step 2). See the MOC panel. For random packing the material sets the minimum wetting rate (<i>Liquid Wetting Rates</i>: Table 9-25 when the MOC is listed).</div></details>
+    </div>
+    <div class="ctl">
+      <span class="lab">Foaming system factor (flood derating)</span>
+      <div class="seg" id="sf" role="group" aria-label="Foaming system factor">
+        <button type="button" data-v="1">None</button><button type="button" data-v="0.73">0.73</button><button type="button" data-v="0.65">0.65</button><button type="button" data-v="0.5" aria-pressed="true">0.50</button>
+      </div>
+      <details class="how"><summary>Method</summary><div>Perry's 9th Table 14-9 lists glycol contactors as heavy-foaming: 0.73 (ref 1), 0.65 (refs 3, 4), 0.50 (ref 2: "0.65 for glycol contactors in synthesis gas service, 0.5 for others"). Natural gas is "others", so 0.50 is the default. Fair's tray flood correlation is valid only for "low or nonfoaming" systems without it, and Perry's applies the same derating to packings. The overview reports diameter across all three values.</div></details>
+    </div>
+  </fieldset>
+
+  <fieldset id="fsSt">
+    <legend>Structured packing</legend>
+    <div class="ctl">
+      <label for="spk">Packing</label>
+      <select id="spk"><option value="auto" selected>Auto · top ranked</option></select>
+      <details class="how"><summary>Method</summary><div>Every Perry's 9th Table 14-14 packing with a packing factor, sized at this case (Kister–Gill capacity, Eq 14-160 HETP) and ranked by favorability. No source gives a structured size-selection procedure; Ludwig p.342: "several competitive designs are often helpful for a final design selection", which is what the ranking does. Perry's p.14-52: finer corrugations are more efficient but have lower capacity and more plugging and fouling sensitivity. ★ = field-tested in TEG service (ARCO, OGJ 1991).</div></details>
+    </div>
+  </fieldset>
+
+  <fieldset id="fsBc">
+    <legend>Bubble-cap trays</legend>
+    <div class="ctl">
+      <label for="tsp">Tray spacing <output id="tspO"></output></label>
+      <input id="tsp" type="range" min="18" max="36" step="1" value="24">
+      <details class="how"><summary>Method</summary><div>Fair's correlation (Perry's Fig 14-32 / Eq 14-90) takes the spacing as an input; 24 in is a placeholder for your call. C<sub>sbf</sub> rises roughly with spacing<sup>0.5–0.6</sup>.</div></details>
+    </div>
+    <div class="ctl">
+      <label for="tfl">Operating point <output id="tflO"></output></label>
+      <input id="tfl" type="range" min="0.8" max="0.9" step="0.01" value="0.85">
+      <details class="how"><summary>Method</summary><div>Perry's p.14-35: towers "are usually designed to operate at 80 to 90 percent of the flood limit".</div></details>
+    </div>
+    <div class="ctl">
+      <label for="adf">Downcomer area <output id="adfO"></output></label>
+      <input id="adf" type="range" min="0.05" max="0.20" step="0.01" value="0.10">
+      <details class="how"><summary>Method</summary><div>Flood velocity is on the net area (total minus one downcomer). No sourced default here; 10% is a placeholder for your call.</div></details>
+    </div>
+    <div class="ctl">
+      <span class="lab">Tray efficiency</span>
+      <div class="seg" id="teff" role="group" aria-label="Tray efficiency method">
+        <button type="button" data-v="aiche" aria-pressed="true">AIChE (Perry's Sec 13)</button><button type="button" data-v="oconnell">O'Connell</button>
+      </div>
+      <details class="how"><summary>Method</summary><div>AIChE Bubble Tray Design Manual (Perry's 9th Eqs 13-72 to 13-78) → point efficiency → Lewis case 1 E<sub>MV</sub> (Eq 14-137) → E<sub>OC</sub> (Eq 14-135). O'Connell (Fig 14-9) is off chart for TEG and kept for reference. Perry's warns that fundamental methods tend to over-predict.</div></details>
+    </div>
+    <div class="ctl row">
+      <label for="weir">Weir height</label>
+      <span class="numin"><input id="weir" type="number" min="25" step="5" value="50"><i>mm</i></span>
+      <small class="err" hidden></small>
+      <details class="how"><summary>Method</summary><div>Sets the clear liquid on the tray (h<sub>w</sub> + Francis crest, Eqs 14-108/109), hence liquid residence time and N<sub>L</sub>. 50 mm is a placeholder (your call); the cap is Fair's restriction: weir height under 15% of tray spacing (p.14-36).</div></details>
+    </div>
+  </fieldset>
+
+  <fieldset id="fsDist">
+    <legend>Liquid distributor</legend>
+    <div class="ctl">
+      <label for="dist">Type</label>
+      <select id="dist">
+        <option value="auto" selected>Auto · Table 9-18 rule</option>
+        <option value="pan">Pan (riser tube)</option>
+        <option value="pohg">Pipe orifice header, gravity</option>
+        <option value="pohp">Pipe orifice header, pressure</option>
+        <option value="ntd">Notched trough</option>
+        <option value="snh">Spray nozzle header</option>
+        <option value="vnd">V-notch trough</option>
+      </select>
+      <small id="distNote"></small>
+      <details class="how"><summary>Method</summary><div><i>Liquid Distributor Type Selection</i> (Ludwig Table 9-18, Bonilla 1993). Auto rule: drip-point types only, because in TEG service a high-efficiency drip-point distributor was "far superior to a notched trough or spray nozzle distributor" (Ludwig Vol 2 p.342, Dean et al.; tested on structured packing). Then, proposed: rated good or better "at low liquid rates", solids handling at or above what the fouling tier needs, best uniformity, lowest cost.</div></details>
+    </div>
+    <div class="ctl">
+      <span class="lab">Distribution quality</span>
+      <div class="seg" id="dq" role="group" aria-label="Distribution quality class">
+        <button type="button" data-v="std">Standard</button><button type="button" data-v="mid">Intermediate</button><button type="button" data-v="hp" aria-pressed="true">High-perf.</button>
+      </div>
+      <details class="how"><summary>Method</summary><div>Perry's 9th p.14-67 (Moore &amp; Rukovena): quality rating 10–70% for standard commercial distributors, 75–90% intermediate, over 90% high-performance. Seider's distributor cost is for high-performance units, so that is the default.</div></details>
+    </div>
+  </fieldset>
+
+  <fieldset id="fsPk">
+    <legend>Packed hydraulics</legend>
+    <div class="ctl">
+      <label for="flood">Operating point <output id="floodO"></output></label>
+      <input id="flood" type="range" min="0.4" max="0.8" step="0.01" value="0.7">
+      <details class="how"><summary>Method</summary><div>Ludwig: 60–80% (<i>Why we typically operate within 60-80% of loading range</i>). Cheremisinoff, Condensed Encyclopedia of Process Equipment: 40–70% (<i>Absorbers · Packed Towers</i>). Both valid.</div></details>
+    </div>
+    <div class="ctl">
+      <label for="dp">Allowable ΔP <output id="dpO"></output></label>
+      <input id="dp" type="range" min="0.1" max="0.4" step="0.01" value="0.4">
+      <details class="how"><summary>Method</summary><div>Type-specific, held separately for each packing type. <b>Random</b>: <i>Allowable Pressure Drop: Random Packing</i>, 0.1–0.4 in H₂O/ft for non-foaming absorption (Kister Table 8.4: non-foaming absorbers 0.25–0.40, foaming 0.25). <b>Structured</b>: Ludwig Vol 2 p.342, "range usually 0.3–0.5 in. water/ft" (no foaming distinction given). Used jointly with the operating point; the more conservative governs (Kister §8.2.12).</div></details>
+    </div>
+  </fieldset>
+
+  <fieldset id="fsRd">
+    <legend>Random packing model</legend>
+    <div class="ctl">
+      <label for="pk">Random packing</label>
+      <select id="pk"><option value="auto" selected>Auto · top ranked</option></select>
+      <details class="how"><summary>Method</summary><div>Every Perry's 8th Table 14-13 packing with a packing factor, ranked by favorability at this case. Hydraulics: the deck's Leva route where Ludwig Table 9-33A has constants, otherwise the Kister–Gill/Strigle GPDC (Perry's Fig 14-55, proposed deck step). Checks: <i>Random Packing Size Selection</i> (Ludwig p.279 + Robbins D ≥ 8 d<sub>p</sub>), Table 9-25 wetting by surface (unglazed ceramic, polypropylene, or the internals material for metal), Table 9-27 maximum load.</div></details>
+    </div>
+    <div class="ctl">
+      <span class="lab">Flood prediction</span>
+      <div class="seg" id="fb" role="group" aria-label="Flood prediction method">
+        <button type="button" data-v="m1">1st · Leva @ 0.4</button><button type="button" data-v="m2" aria-pressed="true">2nd · Eq 9-20</button>
+      </div>
+      <details class="how"><summary>Method</summary><div>1st method: Leva ΔP with incipient flood at 0.4 in/ft (<i>Absorber Operation → Ensure Selected Packing is Appropriate</i>). 2nd method: ΔP<sub>flood</sub> = 0.115 F<sub>p</sub><sup>0.7</sup>; its Sherwood chart is off-range here, so G comes from Leva. Two correlations: read the spread as uncertainty.</div></details>
+    </div>
+    <details class="grp"><summary>Mass-transfer options</summary>
+    <div class="ctl">
+      <span class="lab">Effective area basis</span>
+      <div class="seg" id="area" role="group" aria-label="Effective area basis">
+        <button type="button" data-v="onda" aria-pressed="true">Onda a<sub>w</sub></button><button type="button" data-v="dry">Dry a<sub>p</sub></button><button type="button" data-v="bf">Bravo–Fair</button>
+      </div>
+      <details class="how"><summary>Method</summary><div>Onda a<sub>w</sub> is the only basis within ~20% of Perry's HETP rule here. Bravo–Fair gives a<sub>e</sub> above a<sub>p</sub> at 70 bar; dry a<sub>p</sub> is a bound only.</div></details>
+    </div>
+    <label class="tog"><input type="checkbox" id="liq"> <span>Include liquid-film resistance (H<sub>L</sub>)</span></label>
+    <div class="ctl">
+      <span class="lab">Liquid diffusivity</span>
+      <div class="seg" id="dl" role="group" aria-label="Liquid diffusivity method">
+        <button type="button" data-v="tc" aria-pressed="true">Tyn–Calus</button><button type="button" data-v="wc">Wilke–Chang</button><button type="button" data-v="ol">Olander</button><button type="button" data-v="se">S–E</button>
+      </div>
+    </div>
+    </details>
+  </fieldset>
+
+  <details class="grp"><summary>Kremser averaging and judgment calls</summary>
+  <fieldset>
+    <legend>Stages · Kremser</legend>
+    <div class="ctl">
+      <span class="lab">Absorption factor A</span>
+      <div class="seg" id="avg" role="group" aria-label="Absorption factor averaging">
+        <button type="button" data-v="top">Top</button><button type="button" data-v="geo" aria-pressed="true">Geo mean</button><button type="button" data-v="bottom">Bottom</button>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Your judgment calls</legend>
+    <label class="tog"><input type="checkbox" id="corr"> <span>Corrosion is a real issue</span></label>
+    <label class="tog"><input type="checkbox" id="dpc"> <span>Pressure drop is crucial</span></label>
+    <small class="note">With plugging (fouling tier Dirty or Severe) or corrosion, <i>Trays vs Structured Packing</i> asks "Is pressure drop crucial?"; if not, it goes to trays.</small>
+  </fieldset>
+  </details>
+
+  <details class="grp"><summary>Economics (lifecycle)</summary>
+  <fieldset>
+    <div class="ctl row">
+      <label for="marr">Discount rate (MARR)</label>
+      <span class="numin"><input id="marr" type="number" min="0" max="30" step="1" value="10"><i>%/yr</i></span>
+      <small class="err" hidden></small>
+    </div>
+    <div class="ctl row">
+      <label for="life">Evaluation life</label>
+      <span class="numin"><input id="life" type="number" min="5" max="40" step="1" value="20"><i>yr</i></span>
+      <small class="err" hidden></small>
+    </div>
+    <details class="how"><summary>Method</summary><div>Economics project, <i>Column and internals costing</i> (Seider §16.5, CE 567 → CEPCI 2025 est. 812; F<sub>BM</sub> 4.16). Lifecycle = bare module + present worth of maintenance (2–10% of capital per year, Peters) + internals replacements at the fouling tier's interval. 10% and 20 yr are placeholders for your call. Tray and metal-packing material follow the internals-material selection (MOC screening): stainless → Seider's stainless tray factor, carbon steel → carbon steel.</div></details>
+  </fieldset>
+  </details>
+
+  <fieldset>
+    <legend>After the blind result</legend>
+    <label class="tog"><input type="checkbox" id="gpsa"> <span>Show GPSA comparison</span></label>
+  </fieldset>
+</aside>
+
+<main>
+  <details class="panel" open>
+    <summary><span><span class="chev">▸</span><h2 id="ovTitle">Results overview</h2></span><span class="tag e1">All estimates</span></summary>
+    <div class="body">
+      <p class="lead" id="selLine"></p>
+      <div class="basis" id="decide" aria-label="Selection decisions at this case"></div>
+      <div id="ovBanner"></div>
+      <div class="kpis" id="ovKpi"></div>
+      <h3>Estimates side by side</h3>
+      <div class="tbl"><table class="cmp"><thead><tr id="cmpHead"></tr></thead><tbody id="cmpTab"></tbody></table></div>
+      <h3>Internals compared at these conditions</h3>
+      <div class="tbl"><table><thead><tr><th>Internals</th><th>Selection map</th><th>D, ft</th><th>Height</th><th>Governing check</th></tr></thead><tbody id="typTab"></tbody></table></div>
+      <h3>Cost at this case</h3>
+      <div class="tbl"><table><thead><tr><th>Internals</th><th>Shell, in · lb</th><th>Shell + platforms</th><th>Internals</th><th>Distributor</th><th>Bare module</th><th>Lifecycle PW</th></tr></thead><tbody id="costTab"></tbody></table></div>
+      <p class="note" id="costNote"></p>
+      <h3>Datasheet</h3>
+      <p class="lead"><button type="button" class="dsbtn" id="btnDatasheet">Download absorber datasheet (PDF)</button> <small class="note" id="dsStatus"></small></p>
+      <p class="note">Fills Coulson &amp; Richardson Vol 6, Appendix G: the <i>Vessel data sheet</i>, plus the <i>Column Tray data sheet</i> when bubble caps are selected, with the design shown above, in US units. No library source has a packed-column sheet, so packing goes in the vessel sheet's remarks. Nozzles, dates and order fields are left for the job. FEL-1 screening values.</p>
+    </div>
+  </details>
+
+  <details class="panel">
+    <summary><span><span class="chev">▸</span><h2>Selection</h2></span><span class="tag e1">Absorbers → Absorber Heuristics</span></summary>
+    <div class="body"><div class="walk" id="walk"></div></div>
+  </details>
+
+  <details class="panel">
+    <summary><span><span class="chev">▸</span><h2>Stages · Kremser and graphical</h2></span><span class="tag e1">Equilibrium</span></summary>
+    <div class="body">
+      <div id="e1banner"></div>
+      <div class="kpis" id="e1kpi"></div>
+      <div class="charts">
+        <figure>
+          <svg class="chart" id="mt" viewBox="0 0 460 320" role="img" aria-label="Operating and equilibrium lines with stages stepped"></svg>
+          <figcaption>Operating line and Parrish equilibrium in mole ratios, stepped from the top. The equilibrium curve is dashed below 95 wt% TEG, where Fig 20-54 has no line.</figcaption>
+          <div class="legend"><span><i style="border-color:var(--eq)"></i>Equilibrium (Fig 20-54 + 20-3)</span><span><i style="border-color:var(--e1)"></i>Operating line</span><span><i style="border-color:var(--e2)"></i>Stages</span></div>
+        </figure>
+        <figure>
+          <svg class="chart" id="rem" viewBox="0 0 460 320" role="img" aria-label="Water removal versus circulation for N equal 1 to 3"></svg>
+          <figcaption>Kremser rating: water removal against circulation for N = 1 to 3 at the lean purity you've set. The dashed line is the outlet spec.</figcaption>
+          <div class="legend" id="remLeg"></div>
+        </figure>
+      </div>
+      <p class="note"><i>Design/Evaluation Methods (Most Used)</i> and <i>Selection of Design/Evaluation Method</i> put lean-gas service on Kremser. K for water over TEG comes from GPSA Fig 20-54 (Parrish dewpoint over TEG) mapped through Fig 20-3. <i>Performance Evaluation: Kremser Method – Steps</i>: N from the Kremser equation with the averaged absorption factor; the graphical count steps the same operating line against the real curve, which captures the varying-L effect the averaged A misses.</p>
+    </div>
+  </details>
+
+  <details class="panel" id="pSt">
+    <summary><span><span class="chev">▸</span><h2>Structured packing · method</h2></span><span class="tag e2">Perry's Sec 14 (proposed deck step)</span></summary>
+    <div class="body">
+      <div class="tbl"><table><thead><tr><th>#</th><th>Packing</th><th>a<sub>p</sub></th><th>F<sub>p</sub>, ft⁻¹</th><th>D, ft</th><th>% flood</th><th>ΔP<sub>op</sub>, in/ft</th><th>HETP, m</th><th>Z, m</th><th>Shell + packing (BM)</th><th>Checks</th></tr></thead><tbody id="stTab"></tbody></table></div>
+      <p class="note" id="stNote"></p>
+    </div>
+  </details>
+
+  <details class="panel" id="pBc">
+    <summary><span><span class="chev">▸</span><h2>Bubble-cap trays · method</h2></span><span class="tag e2">Perry's Sec 14 (proposed deck step)</span></summary>
+    <div class="body">
+      <div class="tbl"><table><thead><tr><th>Step</th><th>Source</th><th>Value</th><th>Note</th></tr></thead><tbody id="bcTab"></tbody></table></div>
+    </div>
+  </details>
+
+  <details class="panel" id="pRd">
+    <summary><span><span class="chev">▸</span><h2>Random packing · method</h2></span><span class="tag e2">Absorber Heuristics + Ludwig</span></summary>
+    <div class="body">
+      <h3>Random packings ranked at this case</h3>
+      <div class="tbl"><table><thead><tr><th>#</th><th>Packing</th><th>Hydraulics</th><th>D, ft (in)</th><th>ΔP<sub>op</sub>, in/ft</th><th>Z, m</th><th>Shell + packing (BM)</th><th>Checks</th></tr></thead><tbody id="sizeTab"></tbody></table></div>
+      <p class="note" id="sizeNote"></p>
+      <h3>HETP check (Perry's Sec 14 rule)</h3>
+      <div class="tbl"><table><thead><tr><th>Height basis</th><th>H<sub>G</sub>, m</th><th>λH<sub>L</sub>, m</th><th>a<sub>e</sub>/a<sub>p</sub></th><th>HETP, m</th><th>vs rule</th></tr></thead><tbody id="hetpTab"></tbody></table></div>
+      <p class="note" id="hetpNote"></p>
+      <figure>
+        <svg class="chart" id="zc" viewBox="0 0 460 320" role="img" aria-label="Packed height versus circulation for three area bases"></svg>
+        <figcaption>Z = H<sub>OG</sub> · N<sub>OG</sub> against circulation for each effective-area basis, at the selected size.</figcaption>
+        <div class="legend"><span><i style="border-color:var(--e1)"></i>Onda a<sub>w</sub></span><span><i style="border-color:var(--muted);border-top-style:dashed"></i>Dry a<sub>p</sub></span><span><i style="border-color:var(--e2)"></i>Bravo–Fair a<sub>e</sub> (invalid here)</span></div>
+      </figure>
+      <h3>Diffusivities (Perry's, via <i>Gas and Liquid Diffusivities</i>)</h3>
+      <div class="tbl"><table><thead><tr><th>Route</th><th>Source</th><th>D, cm²/s</th><th>Z with H<sub>L</sub>, m</th><th>Perry's applicability</th></tr></thead><tbody id="dlTab"></tbody></table></div>
+      <h3>Deck checks</h3>
+      <div class="tbl"><table><thead><tr><th>Check</th><th>Source</th><th>Value</th><th>Limit</th><th>Result</th></tr></thead><tbody id="checks"></tbody></table></div>
+    </div>
+  </details>
+
+  <details class="panel" id="gpsaPanel" hidden>
+    <summary><span><span class="chev">▸</span><h2 id="gpsaTitle">GPSA comparison</h2></span><span class="tag g">Comparison only</span></summary>
+    <div class="body">
+      <p class="note">Runs after the blind estimates and compares like with like: only GPSA figures for the internals you selected. A disagreement is a finding, not a correction.</p>
+      <div class="tbl"><table><thead><tr><th>Item</th><th>This tool</th><th>GPSA Sec 20</th><th>Read</th></tr></thead><tbody id="gtab"></tbody></table></div>
+    </div>
+  </details>
+
+  <details class="panel">
+    <summary><span><span class="chev">▸</span><h2>Internals material · MOC screening</h2></span><span class="tag e1">MOC methodology</span></summary>
+    <div class="body"><div class="walk" id="moc"></div></div>
+  </details>
+
+  <details class="panel">
+    <summary><span><span class="chev">▸</span><h2>Workflow findings</h2></span><span class="tag e1">Feed back to decks</span></summary>
+    <div class="body">
+      <ol class="find" id="findings"></ol>
+      <p class="note">Sources: GPSA Engineering Data Book SI (Sec 20, Rev 5-99) Figs 20-3, 20-42, 20-54, 20-55–59 and 20-60; <i>Absorbers</i> and <i>Absorber Heuristics</i> decks; Perry's 9th Sec 14 (Eqs 14-90/91, 14-142, 14-156–161; Figs 14-9, 14-32, 14-56; Tables 14-9, 14-14) and Sec 5 tables; Ludwig Vol 2, 3rd ed.; Rules of Thumb 3rd ed. p.328; MOC evaluation methodology (Plant Resources); dry-gas density from PC-SAFT, the EOS workflow pick, at each P and T (illustrative composition, SG 0.633); gas viscosity Lee–Gonzalez–Eakin.</p>
+    </div>
+  </details>
+</main>
+</div>
+</div>
+
+<!-- Opened directly, the template loads the gas grid and engine from disk and runs without the GPSA
+     overlay; build_contactor_tool.py inlines all three into the shipped page. -->
+<script src="gas_props_grid.js"></script>
+<script src="datasheet_template.js"></script>
+<script src="lib/pdf-lib.min.js"></script>
+<script src="source_thumbs.js"></script>
+<script src="contactor_engine.js"></script>
+<script src="../../../FEL Projects/Economics/scripts/column_cost_engine.js"></script>
+<script>const GPSA_CURVES = /*__GPSA__*/[];</script>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const ST0 = { avg: 'geo', area: 'onda', fb: 'm2', dl: 'tc', typ: 'st', sf: 0.5, teff: 'aiche', dq: 'hp' };
+const st = { ...ST0 };
+const fmt = (v, d = 2) => Number.isFinite(v) ? v.toFixed(d) : '∞';
+let B = basis();
+const LKG_PER_GALLB = GAL_L / LB_KG;          // 8.345 L/kg per gal/lb
+const TYPES = { st: 'Structured packing', bc: 'Bubble-cap trays', rd: 'Random packing' };
+
+// Deck slide references by title (slide numbers change as the decks are reorganized)
+const AB = t => `<cite><i>Absorbers</i> · ${t}</cite>`;
+const AH = t => `<cite>${t}</cite>`;
+const S = {
+  tvp: AH('Trays vs Structured Packing'), map: AH('Internals Selection Map'), svr: AH('Packing: Structured vs Random'), wet: AH('Liquid Wetting Rates'),
+  op: AH('Absorber Operation → Ensure Selected Packing is Appropriate'), band: AH('Why we operate within 60–80%'),
+  adp: AH('Allowable Pressure Drop: Random Packing'), f1: AH('Flood Point (1st method)'), f2: AH('Flood Point (2nd method)'),
+  drip: AH('Liquid Distributors: Drip Points'), redis: AH('Redistribution Heuristics'),
+  kr: AH('Kremser Method – Steps'), htu: AH('Performance Evaluation: HTU/NTU'), diff: AH('Gas and Liquid Diffusivities'),
+  refs: AH('References (mass-transfer correlations)'),
+};
+
+function segInit(id, key, num) {
+  $(id).addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    $(id).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    st[key] = num ? +b.dataset.v : b.dataset.v;
+    if (key === 'typ') st.typManual = true;                           // a click overrides the map's lead
+    render();
+  });
+}
+segInit('avg', 'avg'); segInit('area', 'area'); segInit('fb', 'fb'); segInit('dl', 'dl'); segInit('typ', 'typ'); segInit('sf', 'sf', true); segInit('teff', 'teff'); segInit('dq', 'dq');
+['Q', 'P', 'T', 'Wout', 'wLean', 'circ', 'flood', 'dp', 'pk', 'spk', 'surf', 'tsp', 'tfl', 'adf', 'liq', 'corr', 'dpc', 'gpsa', 'foul', 'dist', 'weir', 'marr', 'life'].forEach(id => $(id).addEventListener('input', render));
+
+// ---------------------------------------------------------------------------
+// Sources panel. kind: book | deck | paper | method | tool. Links open the local file.
+// ---------------------------------------------------------------------------
+// Links (user rule 2026-10-27): decks and tools open their Netlify page in a new tab; books, papers and
+// methods carry no link. url = null means the deck or tool is not published yet.
+const SITE = 'https://jsharpes-portfolio.netlify.app/';
+const SOURCES = [
+  ['absorbers', 'deck', 'Absorbers', 'Absorber type selection (bubble cap and packed tower viable)', SITE + 'slides/absorbers/'],
+  ['absheur', 'deck', 'Absorber Heuristics', 'Selection map, size step, hydraulics, wetting, distributors, Kremser and HTU/NTU', SITE + 'slides/absorber-heuristics/'],
+  ['eos', 'deck', 'Equation of State Selection', 'PC-SAFT pick for dry-gas density', SITE + 'slides/eos-selection/'],
+  ['econdeck', 'deck', 'Equipment Cost Estimations', 'Tower costing route (Economics project)', null],
+  [null, 'tool', 'Vessel Cost Explorer', 'Shell thickness, weight and cost method; ASME II-D stresses', SITE + '#vce-tool'],
+  [null, 'tool', 'Column cost engine (Economics)', 'Seider §16.5 + Bravo Table 12, validated on Seider Ex 16.13', null],
+  [null, 'tool', 'EOS workflow (Thermodynamic Properties)', 'PC-SAFT parameters and stream selection', null],
+  ['gpsa', 'book', 'GPSA Engineering Data Book, Sec 20', 'Water content, TEG equilibrium, TEG properties, operating limits; comparison only for design practice'],
+  ['perry9', 'book', "Perry's 9th, Secs 5, 13, 14", 'Kister–Gill, Fair, AIChE tray efficiency, HETP rules, maldistribution, diffusivities'],
+  ['perry8', 'book', "Perry's 8th, Tables 14-13, 5-24", 'Random packing data; Onda and Bravo–Fair correlations'],
+  ['ludwig', 'book', 'Ludwig Vol 2, 3rd ed.', 'Leva pressure drop, wetting Tables 9-24/9-25, max load, size table, distributor Table 9-18'],
+  ['kister', 'book', 'Kister, Distillation Design (1992)', 'Packed-tower sizing criteria; structured packing minimum wetting 0.1 gpm/ft²'],
+  ['rot', 'book', 'Rules of Thumb for Chemical Engineers', 'Circulation 1.5–3 gal/lb; Table 11 first-guess C-factor; Table 12 internals cost'],
+  ['encyc', 'book', 'Encyclopedia of Chemical Process Equipment', 'Absorber types; 40–70% flood band'],
+  ['seider', 'book', 'Seider, Product and Process Design Principles', 'Shell, tray, packing and distributor costs; F_BM'],
+  ['peters', 'book', 'Peters, Timmerhaus & West', 'Distributor = one bubble-cap tray; maintenance %; CEPCI 1997'],
+  ['asme', 'book', 'ASME II-D (2013)', 'SA-516-70 allowable stress'],
+  ['ogj', 'paper', 'Kean, Turner & Price, OGJ 1991', 'ARCO field data: structured HETP, 25–33% tray efficiency'],
+  ['cabeq', 'paper', 'Filep et al., CABEQ 2022', 'Plant-fitted K_y for TEG structured packing'],
+  [null, 'method', 'MOC evaluation methodology', 'Internals material by component (stainless packing)'],
+];
+(function renderSources() {
+  const th = typeof SOURCE_THUMBS !== 'undefined' ? SOURCE_THUMBS : {};
+  $('srcCount').textContent = `· ${SOURCES.length}`;
+  $('srcGrid').innerHTML = SOURCES.map(([id, kind, title, what, url]) => {
+    const img = id && th[id] ? `<img src="${th[id]}" alt="" class="${kind === 'deck' ? 'wide' : ''}">` : `<span class="ico">${kind === 'tool' ? 'TOOL' : 'DOC'}</span>`;
+    const linked = (kind === 'deck' || kind === 'tool') && url;
+    const note = (kind === 'deck' || kind === 'tool') && !url ? ' · not on the site yet' : '';
+    const inner = `${img}<div><i class="k">${kind}${note}</i><b>${title}${linked ? ' ↗' : ''}</b><span>${what}</span></div>`;
+    return linked ? `<a class="src" href="${url}" target="_blank" rel="noopener">${inner}</a>` : `<div class="src">${inner}</div>`;
+  }).join('');
+})();
+
+// ---------------------------------------------------------------------------
+// SVG chart helper
+// ---------------------------------------------------------------------------
+function chart(svg, o) {
+  const W = 460, H = 320, m = { l: 52, r: 14, t: 12, b: 40 };
+  const sx = v => m.l + (v - o.x[0]) / (o.x[1] - o.x[0]) * (W - m.l - m.r);
+  const sy = v => H - m.b - (v - o.y[0]) / (o.y[1] - o.y[0]) * (H - m.t - m.b);
+  const clip = `<clipPath id="c-${svg.id}"><rect x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}"/></clipPath>`;
+  let g = `<defs>${clip}</defs>`;
+  for (const t of o.xt) g += `<line x1="${sx(t)}" x2="${sx(t)}" y1="${m.t}" y2="${H - m.b}" stroke="var(--grid)"/><text x="${sx(t)}" y="${H - m.b + 15}" text-anchor="middle">${o.xf ? o.xf(t) : t}</text>`;
+  for (const t of o.yt) g += `<line x1="${m.l}" x2="${W - m.r}" y1="${sy(t)}" y2="${sy(t)}" stroke="var(--grid)"/><text x="${m.l - 6}" y="${sy(t) + 3.5}" text-anchor="end">${o.yf ? o.yf(t) : t}</text>`;
+  g += `<rect x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}" fill="none" stroke="var(--rule)"/>`;
+  g += `<text x="${(m.l + W - m.r) / 2}" y="${H - 6}" text-anchor="middle">${o.xl}</text>`;
+  g += `<text transform="translate(12 ${(m.t + H - m.b) / 2}) rotate(-90)" text-anchor="middle">${o.yl}</text>`;
+  g += `<g clip-path="url(#c-${svg.id})">`;
+  for (const s of o.series) {
+    if (!s.pts.length) continue;
+    const d = s.pts.map((p, i) => `${i ? 'L' : 'M'}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join('');
+    g += `<path d="${d}" fill="none" stroke="${s.c}" stroke-width="${s.w || 1.8}" ${s.dash ? `stroke-dasharray="${s.dash}"` : ''} ${s.op ? `opacity="${s.op}"` : ''}/>`;
+  }
+  for (const p of o.pts || []) g += `<circle cx="${sx(p[0])}" cy="${sy(p[1])}" r="${p[3] || 4}" fill="${p[2]}" stroke="var(--panel)" stroke-width="1.5"/>`;
+  g += '</g>';
+  for (const t of o.labels || []) g += `<text x="${sx(t[0]) + 4}" y="${sy(t[1]) - 4}" style="fill:${t[3] || 'var(--muted)'}">${t[2]}</text>`;
+  svg.innerHTML = g;
+}
+const ticks = (a, b, n) => { const s = (b - a) / n; return Array.from({ length: n + 1 }, (_, i) => +(a + i * s).toFixed(6)); };
+function pill(cls, txt) { return `<span class="pill ${cls}">${txt}</span>`; }
+const kpis = arr => arr.map(([c, v, u, k]) => `<div class="kpi ${c}"><div class="v">${v}<small>${u}</small></div><div class="k">${k}</div></div>`).join('');
+const bandTxt = (bands, unit) => bands.length ? bands.map(b => `${b[0] ? b[0] : '<'}${b[0] ? '–' : ''}${b[1]} in`).join(' / ') + ` for this ${unit}` : 'outside table';
+
+// ---------------------------------------------------------------------------
+// Render
+// ---------------------------------------------------------------------------
+const MAT = { ss: 'stainless', cs: 'carbon steel', treated: 'surface-treated metal', none: 'unlisted material' };
+const GPSA_BC_K = [[50, 0.043], [60, 0.049], [75, 0.052]];      // Fig 20-60, bubble caps: spacing cm, K m/s
+const GPSA_PALL_C = { pall25: [0.040, 0.055], pall50: [0.058, 0.079] };
+const rng = (a, b, d = 2) => Math.abs(a - b) < 5e-3 ? fmt(a, d) : `${fmt(Math.min(a, b), d)}–${fmt(Math.max(a, b), d)}`;
+
+// Typed inputs: an empty or out-of-range entry is refused (field flagged, last valid value kept)
+const lastOK = {};
+function typed(id, hiDyn = Infinity) {
+  const el = $(id), v = +el.value, lo = +el.min, hi = Math.min(el.max === '' ? Infinity : +el.max, hiDyn);
+  const ok = el.value !== '' && Number.isFinite(v) && v >= lo && v < hi + 1e-9;
+  const err = el.closest('.ctl').querySelector('.err');
+  el.classList.toggle('bad', !ok); err.hidden = ok;
+  if (!ok) err.textContent = Number.isFinite(hi) ? `Refused: enter ${lo}–${+hi.toFixed(2)}; using ${lastOK[id] ?? el.defaultValue}.` : `Refused: enter ≥ ${lo}; using ${lastOK[id] ?? el.defaultValue}.`;
+  if (ok) lastOK[id] = v;
+  return lastOK[id] ?? +el.defaultValue;
+}
+
+// Selection decisions (engine internalsSelection) at a case; random wetting and size use the Ludwig pick
+const BOD = { B: basis(), wLean: 98.6, circ: 3 };                     // BoD case: 25 MMSCFD, 1000 psig, 100 F, 7 lb
+// Favorability ranking (user 2026-10-27): every structured and random packing is sized at the case and ranked.
+//   1. Designs that pass every sourced check (spec reachable; wetting; random: Table 9-27 max load and the deck size
+//      step), priced ones first by shell + packing bare-module cost (Economics column engine, mid height allowance);
+//   2. passing designs with no sourced packing price, by packed volume;
+//   3. failing designs, with the reason.
+// Tags never gate: TEG field-tested (★), Fig 14-55 GPDC route, '#' nominal size, paired data, C_XY uncertain,
+// unsourced wetting, and fine packings (a >= 350 m2/m3) when the fouling tier is above Clean (Perry's p.14-52).
+const famMat = (pk, surf) => pk.mat === 'ceramic' ? 'ceramic' : pk.mat === 'plastic' ? 'pp' : surf === 'cs' ? 'cs' : 'ss';
+const SEIDER_FAM = { pall: 'pall', ppall: 'pall', mraschig: 'raschig', raschig: 'raschig', berl: 'berl', intalox: 'intalox', sintalox: 'intalox', cmr: 'cmr', pcmr: 'cmr' };
+const rdPrice = (key, surf) => { const pk = PACKINGS[key], f = SEIDER_FAM[pk.fam]; return f ? colRandomPrice(f, famMat(pk, surf), pk.nom) : NaN; };
+const stPrice = key => STRUCTURED[key].mat === 'metal' ? 285 : NaN;                // Seider p.468: SS corrugated sheet only
+function bmOf(Bx, D_ft, Z_m, internals) {
+  if (!Number.isFinite(D_ft) || !Number.isFinite(Z_m)) return NaN;
+  const c = colCost({ D_ft, H_int_ft: Z_m / FT_M, allow_ft: 2.4 / FT_M, P_psig: Bx.P_psig, S_psi: 20000, CA_in: 0.125, internals,
+                      distributors: 1, life_yr: 1, i: 0, maintFrac: [0, 0], replaceEvery_yr: Infinity });
+  return (c.BM.lo + c.BM.hi) / 2;
+}
+const rankMemo = new Map();
+function rankPackings(Bx, w, c, o, tier) {
+  const mkey = JSON.stringify([Bx.Q_MMSCFD, Bx.P_psig, Bx.T_F, Bx.Wout_lb, w, c, o, tier, st.avg, st.dq]);
+  if (rankMemo.has(mkey)) return rankMemo.get(mkey);
+  const kd = kremserDesign(Bx, w, c, st.avg), sg = kd.feasible ? stepStages(Bx, kd.S) : { N: Infinity }, N = sg.N;
+  const mr = mooreRukovena(N, DQ_CLASS[st.dq].lo);
+  const order = list => list.sort((a, b) => (b.pass - a.pass) || (Number.isFinite(b.bm) - Number.isFinite(a.bm)) ||
+                                    (Number.isFinite(a.bm) ? a.bm - b.bm : a.vol - b.vol));
+  const stList = Object.keys(STRUCTURED).map(key => {
+    const pk = STRUCTURED[key], d = structuredDesign(Bx, w, c, key, o), Z = d.hetp * N * mr.heightFactor;
+    const why = [], tags = [];
+    if (!Number.isFinite(Z)) why.push('spec unreachable');
+    if (d.wets === false) why.push(`won't wet (${d.gpmft2.toFixed(2)} < ${pk.mwr})`);
+    if (d.wets === null) tags.push('wetting unsourced');
+    if (pk.tegTested) tags.push('★ TEG-tested');
+    if (pk.cxyUncertain) tags.push('C_XY uncertain');
+    if (tier >= 1 && pk.a >= 350) tags.push('fine: fouling-sensitive');
+    if (d.offChart) tags.push('Fig 14-56 extrap.');
+    const bm = bmOf(Bx, d.D_ft, Z, { kind: 'packing', key: 'structured', mat: 'ss', price: stPrice(key), a: pk.a, trayMat: 'ss303' });
+    return { key, name: pk.name, d, Z, pass: why.length === 0, why, tags, bm, vol: Math.PI / 4 * d.D_ft ** 2 * Z / FT_M };
+  });
+  const rdList = Object.keys(PACKINGS).map(key => {
+    const pk = PACKINGS[key], r = rateBased(Bx, w, c, key, o), Z = r.Z * mr.heightFactor;
+    const why = [], tags = [];
+    if (!Number.isFinite(Z)) why.push('spec unreachable');
+    if (!r.H.wets) why.push(`won't wet (${r.H.gpmft2.toFixed(2)} < ${r.H.mwrGov.toFixed(2)})`);
+    if (r.H.gpmft2 > r.H.maxLoad) why.push('over max load');
+    if (!r.size.fits) why.push(r.size.ok8 ? 'outside p.279 band' : 'D < 8 d_p');
+    if (!pk.leva) tags.push('GPDC route');
+    if (pk.sizeAssumed) tags.push('# size ≈ in');
+    if (pk.note) tags.push('paired data');
+    const price = rdPrice(key, o.surface);
+    const bm = bmOf(Bx, r.H.D_ft, Z, { kind: 'packing', key, mat: famMat(pk, o.surface), price, trayMat: 'ss303' });
+    return { key, name: pk.name, r, Z, pass: why.length === 0, why, tags, bm, vol: Math.PI / 4 * r.H.D_ft ** 2 * Z / FT_M };
+  });
+  const out = { st: order(stList), rd: order(rdList), N };
+  if (rankMemo.size > 40) rankMemo.clear();
+  rankMemo.set(mkey, out);
+  return out;
+}
+const resolveKeys = rk => ({
+  sKey: $('spk').value === 'auto' ? rk.st[0].key : $('spk').value, sAuto: $('spk').value === 'auto',
+  rKey: $('pk').value === 'auto' ? rk.rd[0].key : $('pk').value, rAuto: $('pk').value === 'auto',
+});
+function fillSelect(id, list) {
+  const el = $(id), cur = el.value;
+  const opt = (x, i) => `<option value="${x.key}">${x.pass ? `${i + 1}. ` : '✗ '}${x.name}${x.tags.includes('★ TEG-tested') ? ' ★' : ''} · ${x.pass ? (Number.isFinite(x.bm) ? money(x.bm) : 'no price') : x.why[0]}</option>`;
+  const pass = list.filter(x => x.pass), fail = list.filter(x => !x.pass);
+  el.innerHTML = `<option value="auto">Auto · top ranked (${list[0].name})</option>`
+    + (pass.length ? `<optgroup label="Pass · most favorable first">${pass.map(opt).join('')}</optgroup>` : '')
+    + (fail.length ? `<optgroup label="Fail at this case">${fail.map(x => opt(x, 0)).join('')}</optgroup>` : '');
+  el.value = [...el.options].some(op => op.value === cur) ? cur : 'auto';
+}
+
+// j: {tier, corr, dpCrucial}. The BoD reference is tier Clean, no corrosion, pressure drop not crucial.
+function decide(Bx, w, c, o, j) {
+  const ks = resolveKeys(rankPackings(Bx, w, c, o, j.tier));
+  const sd = structuredDesign(Bx, w, c, ks.sKey, o), ch = { key: ks.rKey };
+  const rr = rateBased(Bx, w, c, ch.key, o);
+  const sel = internalsSelection(sd.FLG, sd.D_ft, rr.H.wets, ch.key, { plug: FOUL_TIERS[j.tier].plug, corr: j.corr, dpCrucial: j.dpCrucial });
+  const g = rotDiameterGuess(Bx, sd.S, 'rd');                         // Rules of Thumb Table 11 first guess
+  const pass1 = g.D[0] >= 3 ? 'structured' : g.D[1] < 3 ? 'random' : 'inconclusive';
+  return { ...sel, FP: sd.FLG, D: sd.D_ft, dist: pickDistributor(j.tier), guess: g, pass1, rdKey: ch.key, stKey: ks.sKey };
+}
+
+// Size every internals type at a case, then cost it through the Economics column engine.
+// Heights: structured HETP x N, random Z, bubble-cap trays x spacing; packed heights carry the
+// Moore-Rukovena loss at the low end of the distribution-quality class (conservative).
+const GPSA_ALLOW_M = [1.8, 3.0];                    // GPSA Sec 20: disengagement + distribution + sump (deck gap)
+function sizeAndCost(Bx, w, c, o, tier, eco) {
+  const kd = kremserDesign(Bx, w, c, st.avg), sg = kd.feasible ? stepStages(Bx, kd.S) : { N: Infinity };
+  const N = sg.N, mr = mooreRukovena(N, DQ_CLASS[st.dq].lo);
+  const ks = resolveKeys(rankPackings(Bx, w, c, o, tier));
+  const sd = structuredDesign(Bx, w, c, ks.sKey, o), td = trayDesign(Bx, w, c, o, N, kd);
+  const pkKey = ks.rKey;
+  const rd = rateBased(Bx, w, c, pkKey, o);
+  const rdMat = famMat(PACKINGS[pkKey], o.surface);
+  const one = (typ, D_ft, H_m, internals) => {
+    if (!Number.isFinite(H_m) || !Number.isFinite(D_ft)) return { typ, ok: false };
+    const base = { D_ft, H_int_ft: H_m / FT_M, P_psig: Bx.P_psig, S_psi: 20000, CA_in: 0.125, internals, distributors: 1,
+                   life_yr: eco.life, i: eco.i, maintFrac: [0.02, 0.10], replaceEvery_yr: FOUL_TIERS[tier].replaceYr[typ] };
+    const lo = colCost({ ...base, allow_ft: GPSA_ALLOW_M[0] / FT_M }), hi = colCost({ ...base, allow_ft: GPSA_ALLOW_M[1] / FT_M });
+    return { typ, ok: true, D_ft, H_m, lo, hi, BM: [lo.BM.lo, hi.BM.hi], LC: [lo.LC.lo, hi.LC.hi], LCmid: (lo.LC.lo + hi.LC.hi) / 2 };
+  };
+  const out = {
+    st: one('st', sd.D_ft, sd.hetp * N * mr.heightFactor, { kind: 'packing', key: 'structured', mat: 'ss', price: stPrice(ks.sKey), a: sd.pk.a, trayMat: eco.trayMat }),
+    rd: one('rd', rd.H.D_ft, rd.Z * mr.heightFactor, { kind: 'packing', key: pkKey, mat: rdMat, price: rdPrice(pkKey, o.surface), trayMat: eco.trayMat }),
+    bc: one('bc', td.D_ft, td.height, { kind: 'trays', N: td.trays, type: 'bubble', mat: eco.trayMat }),
+  };
+  const okTypes = Object.values(out).filter(x => x.ok);
+  out.cheapest = okTypes.length ? okTypes.reduce((a, b) => a.LCmid < b.LCmid ? a : b).typ : null;
+  out.mr = mr; out.N = N;
+  return out;
+}
+const money = x => !Number.isFinite(x) ? '–' : Math.abs(x) >= 1e6 ? `$${(x / 1e6).toFixed(2)}M` : `$${Math.round(x / 1000)}k`;
+const mrng = (a, b) => Math.abs(a / b - 1) < 0.02 ? money(a) : `${money(Math.min(a, b))}–${money(Math.max(a, b))}`;
+const fpTxt = s => s.replace('<', '&lt;').replace('F_P', 'F<sub>P</sub>');
+
+function render() {
+  const Q = +$('Q').value, P = +$('P').value, T = +$('T').value;
+  const Win_lb = yToLbMMSCF(basis({ P_psig: P, T_F: T }).yin);
+  const Wout = typed('Wout', Win_lb * 0.999);                         // spec must sit below the inlet water
+  B = basis({ Q_MMSCFD: Q, P_psig: P, T_F: T, Wout_lb: Wout });
+  const wLean = typed('wLean'), circ = typed('circ');
+  $('QO').textContent = `${Q.toFixed(1)} MMSCFD`;
+  $('PO').textContent = `${P.toLocaleString()} psig`;
+  $('TO').textContent = `${T} °F (${B.T_C.toFixed(1)} °C)`;
+  // Allowable ΔP is held per packed type; the one slider edits whichever packed type is shown
+  const DP_BAND = { st: [0.3, 0.5], rd: [0.1, 0.4] };
+  if (st.typ !== 'bc' && st.dpFor !== st.typ) {            // switching type: load that type's band and value
+    st.dpFor = st.typ; const [lo, hi] = DP_BAND[st.typ];
+    $('dp').min = lo; $('dp').max = hi; $('dp').value = st.dpVal?.[st.typ] ?? hi;
+  }
+  if (st.typ !== 'bc') (st.dpVal ??= {})[st.typ] = +$('dp').value;
+  const dpRd = st.dpVal?.rd ?? 0.4, dpSt = st.dpVal?.st ?? 0.5;
+  const o = { fracFlood: +$('flood').value, dPallow: dpRd, dPallowSt: dpSt, surface: $('surf').value,
+              liquidSide: $('liq').checked, dlMethod: st.dl, rSolute: 1.4e-10, area: st.area, floodBasis: st.fb,
+              sf: st.sf, trayIn: +$('tsp').value, trayFlood: +$('tfl').value, adFrac: +$('adf').value,
+              trayEff: st.teff, weirMm: typed('weir', 0.15 * +$('tsp').value * 25.4) };
+  const tier = +$('foul').value, corr = $('corr').checked, dpCrucial = $('dpc').checked;
+  const eco = { i: typed('marr') / 100, life: typed('life'), trayMat: { ss: 'ss303', treated: 'ss303', cs: 'cs', none: 'cs' }[o.surface] };
+  $('foulO').textContent = FOUL_TIERS[tier].name;
+  $('foulNote').textContent = FOUL_TIERS[tier].desc;
+  const showG = $('gpsa').checked;
+
+  // ---- Selection: follow the map's lead unless the user picked a type; flag shifts from the BoD case ----
+  const j0 = { tier: 0, corr: false, dpCrucial: false };
+  const dec = decide(B, wLean, circ, o, { tier, corr, dpCrucial }), dec0 = decide(BOD.B, BOD.wLean, BOD.circ, o, j0);
+  const cost = sizeAndCost(B, wLean, circ, o, tier, eco), cost0 = sizeAndCost(BOD.B, BOD.wLean, BOD.circ, o, 0, eco);
+  const distKey = $('dist').value === 'auto' ? dec.dist : $('dist').value, dObj = distKey ? DISTRIBUTORS[distKey] : null;
+  if (!st.typManual && dec.lead) st.typ = dec.lead;
+  const typ = st.typ;
+  if (typ !== 'bc' && st.dpFor !== typ) return render();      // auto-lead changed the packed type: reload its ΔP band
+  $('typ').querySelectorAll('button').forEach(b => {
+    b.setAttribute('aria-pressed', b.dataset.v === typ);
+    b.classList.toggle('lead', b.dataset.v === dec.lead);
+    b.classList.toggle('shift', b.dataset.v === dec.lead && dec.lead !== dec0.lead);
+  });
+  const sizeName = k => k ? PACKINGS[k].name.replace(/ \([^)]*\)/, '') : 'no size fits';
+  const decisions = [
+    ['F<sub>P</sub> band', `${fpTxt(dec.band.label)} (${dec.FP.toFixed(4)})`, fpTxt(dec0.band.label), dec.band !== dec0.band],
+    ['Map lead', dec.lead ? TYPES[dec.lead] : 'none (no study data)', dec0.lead ? TYPES[dec0.lead] : 'none', dec.lead !== dec0.lead],
+    ['Map tray type', dec.band.tray, dec0.band.tray, dec.band.tray !== dec0.band.tray],
+    ['3 ft size rule', `RoT guess ${dec.guess.D[0].toFixed(1)}–${dec.guess.D[1].toFixed(1)} ft: ${dec.pass1}; computed ${dec.D.toFixed(2)} ft: ${dec.sizeRule === 'st' ? 'structured' : 'random'}`, dec0.sizeRule === 'st' ? 'structured' : 'random', dec.sizeRule !== dec0.sizeRule],
+    ['Random wetting', dec.wets ? 'wets' : "won't wet", dec0.wets ? 'wets' : "won't wet", dec.wets !== dec0.wets],
+    ['Structured packing (auto)', STRUCTURED[dec.stKey].name, STRUCTURED[dec0.stKey].name, dec.stKey !== dec0.stKey],
+    ['Random packing (auto)', sizeName(dec.rdKey), sizeName(dec0.rdKey), dec.rdKey !== dec0.rdKey],
+    ['Distributor (auto)', dec.dist ? DISTRIBUTORS[dec.dist].name : 'none qualifies', dec0.dist ? DISTRIBUTORS[dec0.dist].name : 'none', dec.dist !== dec0.dist],
+    ['Plugging (fouling tier)', FOUL_TIERS[tier].plug ? 'real issue' : 'no', 'no', FOUL_TIERS[tier].plug],
+    ['Lowest lifecycle cost', cost.cheapest ? TYPES[cost.cheapest] : '–', cost0.cheapest ? TYPES[cost0.cheapest] : '–', cost.cheapest !== cost0.cheapest],
+  ];
+  const shifted = decisions.filter(d => d[3]);
+  $('decide').innerHTML = decisions.map(([k, v, v0, sh]) => `<span class="chip dec${sh ? ' shift' : ''}" title="${sh ? 'Shifted from the BoD case' : 'Same as the BoD case'}"><b>${k}</b>${v}${sh ? `<span class="was">BoD: ${v0}</span>` : ''}</span>`).join('');
+  $('circO').textContent = `${(circ * LKG_PER_GALLB).toFixed(1)} L/kg`;
+  $('floodO').textContent = Math.round(o.fracFlood * 100) + '% flood';
+  $('dpO').textContent = `${(st.typ === 'st' ? dpSt : dpRd).toFixed(2)} in H₂O/ft · ${st.typ === 'st' ? 'structured 0.3–0.5' : 'random 0.1–0.4'}`;
+  $('tspO').textContent = `${o.trayIn} in (${(o.trayIn * 2.54).toFixed(0)} cm)`;
+  $('tflO').textContent = Math.round(o.trayFlood * 100) + '% flood';
+  $('adfO').textContent = Math.round(o.adFrac * 100) + '% of tower area';
+  $('fsSt').hidden = typ !== 'st'; $('fsBc').hidden = typ !== 'bc'; $('fsPk').hidden = typ === 'bc'; $('fsRd').hidden = typ !== 'rd'; $('fsDist').hidden = typ === 'bc';
+  const fm = fmaxLB(B, wLean, circ);
+  $('distNote').innerHTML = dObj ? `Table 9-18: uniformity ${dObj.uniform} · solids ${dObj.solids} · low liquid ${dObj.lowL} · cost ${dObj.cost}. Moore–Rukovena at ${DQ_CLASS[st.dq].name.toLowerCase()} (${DQ_CLASS[st.dq].lo}–${DQ_CLASS[st.dq].hi}%): ${cost.mr.lost.toFixed(2)} of ${fmt(cost.N)} stages lost. Lockett–Billingham f<sub>max</sub> ${fmt(fm.f)} (${fm.cls}).` : `No drip-point distributor (the TEG finding) is rated good at low liquid rates <i>and</i> ${FOUL_TIERS[tier].solidsMin} or better on solids. Packing is not recommended at this tier.`;
+
+  // (Header chips removed 2026-10-27: inputs are on the left; derived values sit in the Stages panel.)
+
+  // ---- Stages ----
+  const kd = kremserDesign(B, wLean, circ, st.avg);
+  const sg = kd.feasible ? stepStages(B, kd.S) : { N: Infinity, steps: [] };
+  const gpm = kd.S.Vl * 15850.32;
+  const XN = kd.S.X0 + B.Vdry * (B.Yin - B.Yout) / kd.S.Lp;
+
+  // ---- Designs: all three internals at these conditions ----
+  const rk = rankPackings(B, wLean, circ, o, tier), ksR = resolveKeys(rk);
+  fillSelect('spk', rk.st); fillSelect('pk', rk.rd);
+  const sKey = ksR.sKey;
+  const sd = structuredDesign(B, wLean, circ, sKey, o);
+  const td = trayDesign(B, wLean, circ, o, sg.N, kd);
+  const auto = ksR.rAuto, pkKey = ksR.rKey;
+  const r = rateBased(B, wLean, circ, pkKey, o);
+  const H = r.H, mt = r.mt || {};
+  const conv = Math.log(r.lambda) / (r.lambda - 1);
+  const hetpRd = r.HOG * conv, hr = hetpRule(B, PACKINGS[pkKey], r.lambda);
+  const FP = sd.FLG, Nk = kd.N, Ng = sg.N;
+  const plug = FOUL_TIERS[tier].plug, packingOK = !plug && !corr;
+  const sfAll = [0.73, 0.65, 0.5];
+  const spread = f => { const v = sfAll.map(s => f({ ...o, sf: s })); return [Math.min(...v), Math.max(...v)]; };
+  const dSt = spread(oo => structuredDesign(B, wLean, circ, sKey, oo).D_ft);
+  const dBc = spread(oo => trayDesign(B, wLean, circ, oo, Ng, kd).D_ft);
+  const dRd = spread(oo => rateBased(B, wLean, circ, pkKey, oo).H.D_ft);
+  const rdOther = rateBased(B, wLean, circ, pkKey, { ...o, floodBasis: st.fb === 'm1' ? 'm2' : 'm1' });
+  const sfTxt = st.sf === 1 ? 'no foaming factor' : `system factor ${st.sf}`;
+  const pkName = PACKINGS[pkKey].name.replace(/ \([^)]*\)/, ''), SURF = { ceramic: 'unglazed ceramic', pp: 'polypropylene' };
+  const surfName = SURF[H.surf] || MAT[o.surface];
+
+  // GPSA: diameter implied by a Fig 20-60 C/K-factor (total tower area)
+  const mG = B.Vdry * (B.gasMW + B.Yin * MW_W), rhoL = B.liq.rho, rhoG = B.rhoG;
+  const dFromC = C => Math.sqrt(4 * mG / (rhoG * C * Math.sqrt((rhoL - rhoG) / rhoG)) / Math.PI) / FT_M;
+  const bcK = GPSA_BC_K.reduce((a, b) => Math.abs(b[0] - o.trayIn * 2.54) < Math.abs(a[0] - o.trayIn * 2.54) ? b : a);
+  const gTrays = Number.isFinite(Ng) ? [Math.ceil(Ng / 0.30), Math.ceil(Ng / 0.25)] : [NaN, NaN];
+
+  // ---- Overview ----
+  $('ovTitle').textContent = `Results overview · ${TYPES[typ]}`;
+  const leadTxt = dec.lead ? TYPES[dec.lead].toLowerCase() : 'no type (no study data)';
+  $('typNote').innerHTML = `Map lead at F<sub>P</sub> ${FP.toFixed(4)}: <b>${leadTxt}</b> (marked ●).`
+    + (st.typManual && dec.lead && typ !== dec.lead ? ` You picked ${TYPES[typ].toLowerCase()}. <button type="button" class="linkbtn" id="follow">Follow the map</button>` : '');
+  if ($('follow')) $('follow').onclick = () => { st.typManual = false; render(); };
+  $('selLine').innerHTML = `${S.map}, band ${fpTxt(dec.band.label)}: structured <i>${dec.band.st}</i>; trays <i>${dec.band.tray}</i>; random <i>${dec.band.rd}</i>. Showing <b>${TYPES[typ].toLowerCase()}</b>${st.typManual ? ' (your pick)' : ' (map lead)'}, ${sfTxt}. Amber = shifted from the BoD case.`;
+  $('ovBanner').innerHTML = [
+    shifted.length ? `<div class="banner warn shiftban">Selection shifted from the BoD case: ${shifted.map(d => `${d[0]} → ${d[1]}`).join('; ')}.</div>` : '',
+    !dec.lead ? `<div class="banner">${S.map}: F<sub>P</sub> above 0.5 has no study data, so the map recommends no internals type. The tool keeps your pick and does not choose one.</div>` : '',
+    typ === 'bc' && !dec.bcApplies ? `<div class="banner warn">"F<sub>P</sub> &lt; 0.02 consider bubble cap" no longer applies; the map's tray type here is ${dec.band.tray.toLowerCase()}. Fair's flood correlation covers sieve and valve trays too; the O'Connell and GPSA figures are bubble-cap specific.</div>` : '',
+    !kd.feasible ? `<div class="banner">Spec not reachable at ${wLean.toFixed(2)} wt%: gas in equilibrium with the lean TEG holds ${yToLbMMSCF(kd.y0s).toFixed(2)} lb/MMSCF. Raise the lean purity or relax the spec.</div>` : '',
+    B.rhoG > 100 ? `<div class="banner warn">Gas density ${B.rhoG.toFixed(0)} kg/m³: above about 100 kg/m³ GPSA says its HETP and tray-efficiency conversions "may not provide sufficient" height.</div>` : '',
+    typ === 'rd' && !H.wets ? `<div class="banner warn">Table ${H.mwrTable}: ${pkName} (${surfName}) won't wet (${H.gpmft2.toFixed(2)} vs ${H.mwrGov.toFixed(2)} gpm/ft²). Comparison only.</div>` : '',
+    typ === 'st' && sd.offChart ? `<div class="banner warn">F<sub>LG</sub> ${FP.toFixed(4)} is outside Fig 14-56's digitized span (0.005–0.061); capacity extrapolated.</div>` : '',
+    typ === 'st' && sd.extrapFlood ? `<div class="banner warn">Kister–Gill flood ΔP ${sd.dPflood.toFixed(2)} in/ft is above the chart's top curve (1.5); flood capacity extrapolated.</div>` : '',
+    typ === 'bc' && td.lowerBound ? `<div class="banner warn">O'Connell parameter ${td.X.toFixed(1)} is off Fig 14-9 (ends at 10 ≈ 63%); tray count is a lower bound.</div>` : '',
+    !packingOK ? `<div class="banner warn">${S.tvp}: ${[plug && `plugging (fouling tier ${FOUL_TIERS[tier].name})`, corr && 'corrosion'].filter(Boolean).join(' and ')} → "Is pressure drop crucial?" ${dpCrucial ? 'Yes: packing stays, mitigate the fouling.' : 'No: trays. The map lead moves to bubble cap.'}</div>` : '',
+    !dObj && typ !== 'bc' ? `<div class="banner warn">No Table 9-18 distributor is rated good at low liquid rates and handles ${FOUL_TIERS[tier].name.toLowerCase()} glycol solids.</div>` : '',
+  ].join('');
+
+  const zSt = [sd.hetp * Ng, sd.hetp * Nk];
+  const k = {
+    st: [['e2', fmt(sd.D_ft, 2), 'ft', `Diameter · ${sd.pk.name} · ${rng(dSt[0], dSt[1])} ft over SF 0.50–0.73`],
+         ['e2', rng(zSt[0], zSt[1], 1), 'm', 'Packed height (graphical–Kremser N)'],
+         ['', fmt(sd.hetp, 2), 'm', 'HETP (Perry\'s Eq 14-160 × glycol × λ)'],
+         ['', fmt(100 * sd.pctFlood, 0), '%', `of flood · ΔP ${sd.dPop.toFixed(2)} in/ft · ${sd.governs === '% of flood' ? 'flood' : 'ΔP'} governs`]],
+    bc: [['e2', fmt(td.D_ft, 2), 'ft', `Diameter · ${rng(dBc[0], dBc[1])} ft over SF 0.50–0.73`],
+         ['e2', `${Number.isFinite(td.trays) ? td.trays + (td.lowerBound ? '+' : '') : '∞'}`, 'trays', `Actual trays (${td.method === 'aiche' ? 'AIChE' : "O'Connell"} E ${td.lowerBound ? '≥ ' : ''}${(100 * td.E).toFixed(0)}%)`],
+         ['', fmt(td.height, 1), 'm', `Tray section at ${o.trayIn} in spacing`],
+         ['', fmt(100 * o.trayFlood, 0), '%', 'of flood (Perry\'s 80–90%)']],
+    rd: [['e2', fmt(H.D_ft, 2), 'ft', `Diameter · ${pkName}${auto ? ' (auto)' : ''} · other flood method ${fmt(rdOther.H.D_ft, 2)} ft`],
+         ['e2', fmt(r.Z, 2), 'm', `Packed height (${st.area === 'onda' ? 'Onda' : st.area === 'dry' ? 'dry a_p' : 'Bravo–Fair'} model)`],
+         ['', fmt(hetpRd, 2), 'm', `HETP · Perry's rule ${hr.lo.toFixed(1)}–${hr.hi.toFixed(1)} m`],
+         ['', H.wets ? 'yes' : 'no', '', `Wets in ${MAT[o.surface]}? (Table ${H.mwrTable})`]],
+  }[typ];
+  $('ovKpi').innerHTML = kpis([['e1', `${fmt(Ng)} / ${fmt(Nk)}`, 'stages', 'Theoretical: graphical / Kremser'], ...k]);
+
+  // Estimates side by side: rows = quantities, columns = methods (+ GPSA, type-matched)
+  const gH = showG ? '<th class="g">GPSA (same internals)</th>' : '';
+  $('cmpHead').innerHTML = `<th>Quantity</th><th>Primary method</th><th>Alternative</th>${gH}`;
+  const rowsBy = {
+    st: [
+      ['Diameter', `Kister–Gill, ${sfTxt}: <b>${fmt(sd.D_ft)} ft</b>`, `SF 0.50–0.73: ${rng(dSt[0], dSt[1])} ft`, `C 0.091–0.122 m/s (Fig 20-60): ${rng(dFromC(0.122), dFromC(0.091))} ft`],
+      ['HETP', `Eq 14-160 × 1.5 σ × ${sd.fLam.toFixed(2)} λ: <b>${fmt(sd.hetp)} m</b>`, 'No model (Bravo–Rocha–Fair needs channel geometry)', '≈ 1.5 m (Ex 20-11: 2 stages ≅ 3 m)'],
+      ['Packed height', `HETP × N: <b>${rng(zSt[0], zSt[1], 1)} m</b>`, '–', `1.5 m × N: ${rng(1.5 * Ng, 1.5 * Nk, 1)} m`],
+    ],
+    bc: [
+      ['Diameter', `Fair, ${Math.round(100 * o.trayFlood)}% flood, ${sfTxt}: <b>${fmt(td.D_ft)} ft</b>`, `SF 0.50–0.73: ${rng(dBc[0], dBc[1])} ft`, `K ${bcK[1]} m/s at ${bcK[0]} cm (Fig 20-60): ${fmt(dFromC(bcK[1]))} ft`],
+      ['Tray efficiency', td.method === 'aiche' ? `AIChE, ${o.weirMm} mm weir: <b>${(100 * td.E).toFixed(0)}%</b>` : `O'Connell (Fig 14-9): <b>${td.lowerBound ? '≥ ' : ''}${(100 * td.E).toFixed(0)}%</b>${td.lowerBound ? ' (off chart)' : ''}`, td.method === 'aiche' ? `O'Connell ≥ ${(100 * td.Eoc).toFixed(0)}% (off chart)` : `AIChE ${(100 * td.ai.EOC).toFixed(0)}%`, '25–30%'],
+      ['Actual trays', `N / E: <b>${td.trays}${td.lowerBound ? ' (lower bound)' : ''}</b>`, `on Kremser N: ${Number.isFinite(Nk) ? Math.ceil(Nk / td.E) : '–'}`, `${gTrays[0]}–${gTrays[1]} trays at 0.6 m spacing`],
+      ['Tray section', `<b>${fmt(td.height, 1)} m</b>`, '–', `${fmt(gTrays[0] * 0.6, 1)}–${fmt(gTrays[1] * 0.6, 1)} m`],
+    ],
+    rd: [
+      ['Diameter', `${st.fb === 'm1' ? 'Leva @ 0.4' : 'Eq 9-20'}, ${sfTxt}: <b>${fmt(H.D_ft)} ft</b>`, `other flood method ${fmt(rdOther.H.D_ft)} ft · SF 0.50–0.73: ${rng(dRd[0], dRd[1])} ft`, GPSA_PALL_C[pkKey] ? `C ${GPSA_PALL_C[pkKey].join('–')} m/s (Fig 20-60): ${rng(dFromC(GPSA_PALL_C[pkKey][1]), dFromC(GPSA_PALL_C[pkKey][0]))} ft` : `${pkName} not listed in Fig 20-60`],
+      ['HETP', `Onda model: <b>${fmt(hetpRd)} m</b>`, `Perry's rule: ${hr.lo.toFixed(2)}–${hr.hi.toFixed(2)} m`, pkKey === 'pall50' ? '0.85–0.88 m (Fig 19-24, lean oil, not TEG)' : 'none for random packing in Sec 20'],
+      ['Packed height', `<b>${fmt(r.Z, 1)} m</b>`, `rule × N: ${rng(hr.lo * Ng, hr.hi * Nk, 1)} m`, '–'],
+      ['Wetting', `Table ${H.mwrTable} (${MAT[o.surface]}): ${H.wets ? pill('ok', 'wets') : pill('bad', `fails ×${(H.mwrGov / H.gpmft2).toFixed(1)}`)}`, `${H.gpmft2.toFixed(2)} vs ${H.mwrGov.toFixed(2)} gpm/ft²`, '–'],
+    ],
+  }[typ];
+  const stageRow = ['Theoretical stages', `Graphical, real curve: <b>${fmt(Ng)}</b>`, `Kremser, averaged A: ${fmt(Nk)}`, 'Figs 20-55–59 (same Kremser method)'];
+  $('cmpTab').innerHTML = [stageRow, ...rowsBy].map(rw => `<tr><td>${rw[0]}</td><td>${rw[1]}</td><td>${rw[2]}</td>${showG ? `<td class="g">${rw[3]}</td>` : ''}</tr>`).join('');
+
+  // ---- Cost (Economics column engine) ----
+  const cRow = k => { const c = cost[k]; if (!c.ok) return `<tr><td>${TYPES[k]}</td><td colspan="6">not sized (spec unreachable)</td></tr>`;
+    const lo = c.lo, hi = c.hi;
+    return `<tr class="${k === typ ? 'sel' : ''}"><td>${TYPES[k]}${k === cost.cheapest ? ' ' + pill(cost.cheapest !== cost0.cheapest ? 'warn' : 'ok', 'lowest lifecycle') : ''}</td>`
+      + `<td class="num">${lo.sh.t.toFixed(3)} · ${Math.round(lo.sh.W).toLocaleString()}–${Math.round(hi.sh.W).toLocaleString()}</td>`
+      + `<td class="num">${mrng(colEsc(lo.vs.CP), colEsc(hi.vs.CP))}</td><td class="num">${money(colEsc(lo.Cint))}</td>`
+      + `<td class="num">${k === 'bc' ? '–' : mrng(colEsc(lo.dist.lo), colEsc(lo.dist.hi))}</td><td class="num">${mrng(c.BM[0], c.BM[1])}</td>`
+      + `<td class="num">${mrng(c.LC[0], c.LC[1])}${lo.events ? ` <small>(${lo.events} replacement${lo.events > 1 ? 's' : ''})</small>` : ''}</td></tr>`; };
+  $('costTab').innerHTML = ['st', 'bc', 'rd'].map(cRow).join('');
+  const cAll = ['st', 'bc', 'rd'].filter(k => cost[k].ok).flatMap(k => [cost[k].lo, cost[k].hi]);
+  const Ws = cAll.map(c => c.sh.W), cflags = [];
+  if (Ws.some(w => w < 9000)) cflags.push(`Shell weights ${Math.round(Math.min(...Ws)).toLocaleString()}–${Math.round(Math.max(...Ws)).toLocaleString()} lb reach below the tower correlation (9,000 lb); the vertical-vessel form is used there.`);
+  if (cAll.some(c => c.vs.CPLsrc === 'Eq 16.58 tower' && !(c.L >= 27))) cflags.push('Platforms: both Seider forms are out of range (D under 3 ft or L under 12 ft); extrapolated.');
+  $('costNote').innerHTML = `Economics project, <i>Column and internals costing</i>: Seider §16.5 at CE 567 escalated to CEPCI ${COL_CE_YEAR} (${COL_CE[COL_CE_YEAR]}, an estimate), SA-516-70 shell (ASME II-D 20.0 ksi), F<sub>BM</sub> ${COL_FBM}. `
+    + `Ranges span GPSA's 1.8–3 m height allowance (the deck has none), Seider vs Peters distributor cost, and maintenance at 2–10% per year. Lifecycle = present worth at ${(eco.i * 100).toFixed(0)}% over ${eco.life} yr, with internals replaced every `
+    + `${['st', 'rd', 'bc'].map(k => `${Number.isFinite(FOUL_TIERS[tier].replaceYr[k]) ? FOUL_TIERS[tier].replaceYr[k] + ' yr' : 'never'} (${TYPES[k].split(' ')[0].toLowerCase()})`).join(', ')} at the ${FOUL_TIERS[tier].name.toLowerCase()} tier: <b>proposed intervals, not sourced</b>. `
+    + `Packed heights include the Moore–Rukovena loss at the low end of the quality class. ${cflags.length ? 'Range flags: ' + cflags.join(' ') : ''}`;
+
+  $('typTab').innerHTML = [
+    ['st', dec.band.st, `${fmt(sd.D_ft)} (${sd.pk.name})`, `${rng(zSt[0], zSt[1], 1)} m packed`, `${(100 * sd.pctFlood).toFixed(0)}% flood; ` + (sd.wets ? pill('ok', `wets ${sd.gpmft2.toFixed(2)} ≥ 0.1 gpm/ft²`) : pill('bad', `fails ${sd.gpmft2.toFixed(2)} < 0.1 gpm/ft²`))],
+    ['bc', dec.bcApplies ? dec.band.tray : `Out of band; map tray type: ${dec.band.tray}`, fmt(td.D_ft), `${Number.isFinite(td.trays) ? td.trays + (td.lowerBound ? '+' : '') : '∞'} trays, ${fmt(td.height, 1)} m`, td.offChart ? pill('warn', "O'Connell off chart") : pill('ok', 'in range')],
+    ['rd', dec.band.rd, `${fmt(H.D_ft)} (${pkName})`, `${fmt(r.Z, 1)} m packed`, H.wets ? pill('ok', `wets (${surfName})`) : pill('bad', `won't wet (${surfName})`)],
+  ].map(rw => `<tr class="${rw[0] === typ ? 'sel' : ''}"><td>${TYPES[rw[0]]}${rw[0] === dec.lead ? ' ' + pill(dec.lead !== dec0.lead ? 'warn' : 'ok', 'map lead') : ''}</td><td>${rw[1]}</td><td class="num">${rw[2]}</td><td>${rw[3]}</td><td>${rw[4]}</td></tr>`).join('');
+
+  // ---- Selection (condensed) ----
+  $('walk').innerHTML = [
+    [AB('type slides'), 'Agitated vessel (batch), cooler absorber (low heat of absorption), spray tower (88% removal is not a low duty) and venturi (single stage) are out. <b>Bubble cap</b> ("low liquid rates") and <b>packed tower</b> are viable.'],
+    [S.map, `F<sub>P</sub> = ${FP.toFixed(4)}, band ${fpTxt(dec.band.label)}. Structured: ${dec.band.st}. Trays: ${dec.band.tray}. Random: ${dec.band.rd}${dec.wets ? '' : ` (doesn't wet in ${MAT[o.surface]})`}. Lead: <b>${leadTxt}</b>${dec.band.bc ? '; below Kister\'s data (0.02) the tool leads with structured because bubble caps beat random there, not structured' : ''}.`],
+    [S.svr, `Pass 1 (first guess, Rules of Thumb Table 11, random C 0.03–0.3 ft/s): D ${dec.guess.D[0].toFixed(1)}–${dec.guess.D[1].toFixed(1)} ft → <b>${dec.pass1}</b>. Pass 2 (computed structured D ${dec.D.toFixed(2)} ft) → <b>${dec.sizeRule === 'st' ? 'structured' : 'random'}</b>. Reported as a flag, not an override (your ruling).`],
+    [S.tvp, `Plugging: ${plug ? `yes (fouling tier ${FOUL_TIERS[tier].name})` : 'no'}. Corrosion: ${corr ? 'yes' : 'no'}. ${packingOK ? 'Packing stands.' : dpCrucial ? 'Pressure drop is crucial: packing stays; mitigate.' : 'Pressure drop not crucial: trays (bubble cap).'}`],
+  ].map(([a, b]) => `<div><b>${a}</b><span>${b}</span></div>`).join('');
+
+  // ---- Stages panel ----
+  $('e1banner').innerHTML = kd.feasible && kd.wRich < 95 ? `<div class="banner warn">The rich TEG leaves at ${kd.wRich.toFixed(1)} wt%, below the 95 wt% bottom line of Fig 20-54; the bottom-end K is extrapolated.</div>` : '';
+  $('e1kpi').innerHTML = kpis([
+    ['e1', fmt(Nk), 'stages', 'Kremser N'], ['e1', fmt(Ng), 'stages', 'Graphical N on real curve'],
+    ['', yToLbMMSCF(B.yin).toFixed(1), 'lb/MMSCF', `Inlet water (Fig 20-3) · removal ${(B.Ea * 100).toFixed(1)}%`],
+    ['', B.rhoG.toFixed(1), 'kg/m³', `Gas (PC-SAFT) · μ ${(B.muG * 1e3).toFixed(4)} cP`],
+    ['', B.liq.rho.toFixed(0), 'kg/m³', `Lean TEG · μ ${(B.liq.mu * 1000).toFixed(1)} cP`],
+    ['', `${fmt(kd.Atop)} / ${fmt(kd.Abot)}`, '', 'A top / bottom'], ['', fmt(kd.wRich, 1), 'wt%', 'Rich TEG'],
+    ['', fmt(gpm, 2), 'gpm', 'Lean TEG rate'], ['', fmt(100 * kd.y0s / B.yout, 0), '%', 'Lean-end equilibrium / spec'],
+  ]);
+  const xSteps = Math.max(0, ...sg.steps.map(s => s.X));
+  const xMax = Math.min(1.6, Math.max(0.6, XN * 1.15, xSteps * 1.05)), yMax = B.Yin * 1e3 * 1.35;
+  const eqSolid = [], eqDash = [];
+  for (let i = 0; i <= 120; i++) {
+    const X = 0.005 + i * (xMax - 0.005) / 120, x = X / (1 + X), ys = yStar(x, B);
+    (wFromX(x) >= 95 ? eqSolid : eqDash).push([X, ys / (1 - ys) * 1e3]);
+  }
+  if (eqDash.length && eqSolid.length) eqDash.unshift(eqSolid[eqSolid.length - 1]);
+  const stair = [];
+  for (const s of sg.steps) { stair.push([kd.S.X0 + B.Vdry * (s.Y - B.Yout) / kd.S.Lp, s.Y * 1e3], [s.X, s.Y * 1e3], [s.X, s.Ynext * 1e3]); }
+  chart($('mt'), {
+    x: [0, xMax], y: [0, yMax], xt: ticks(0, xMax, 6), yt: ticks(0, yMax, 5), xf: t => t.toFixed(2), yf: t => t.toFixed(2),
+    xl: 'X, mol water / mol TEG', yl: 'Y × 10³, mol water / mol dry gas',
+    series: [{ pts: eqSolid, c: 'var(--eq)' }, { pts: eqDash, c: 'var(--eq)', dash: '5 4' },
+             { pts: [[kd.S.X0, B.Yout * 1e3], [XN, B.Yin * 1e3]], c: 'var(--e1)', w: 2.2 }, { pts: stair, c: 'var(--e2)', w: 1.4 }],
+    pts: [[kd.S.X0, B.Yout * 1e3, 'var(--e1)'], [XN, B.Yin * 1e3, 'var(--e1)']],
+    labels: [[kd.S.X0, B.Yout * 1e3, 'top · lean', 'var(--e1)'], [XN, B.Yin * 1e3, 'bottom · rich', 'var(--e1)']],
+  });
+  const Ns = [1, 1.5, 2, 2.5, 3], cx = [], op = [0.35, 0.5, 0.7, 0.85, 1];
+  for (let c = 1.2; c <= 6.01; c += 0.2) cx.push(c);
+  const series = Ns.map((N, i) => ({ pts: cx.map(c => [c * LKG_PER_GALLB / 1000, kremserRate(B, wLean, c, N, st.avg).removal]), c: 'var(--e1)', op: op[i] }));
+  series.push({ pts: [[0.01, B.Ea], [0.05, B.Ea]], c: 'var(--bad)', dash: '6 4', w: 1.2 });
+  let gLeg = '';
+  if (showG && GPSA_CURVES.length) {
+    const wts = [...new Set(GPSA_CURVES.map(c => c[1]))];
+    const wNear = wts.reduce((a, b) => Math.abs(b - wLean) < Math.abs(a - wLean) ? b : a);
+    GPSA_CURVES.filter(c => c[1] === wNear).forEach(c => series.push({ pts: c[2].map(p => [p[0] / 1000, p[1]]), c: 'var(--gpsa)', dash: '4 3', op: op[Ns.indexOf(c[0])] ?? 1 }));
+    gLeg = `<span><i style="border-color:var(--gpsa);border-top-style:dashed"></i>GPSA Figs 20-55–59 at ${wNear} wt%</span>`;
+  }
+  chart($('rem'), {
+    x: [0.01, 0.05], y: [0.55, 1.0], xt: ticks(0.01, 0.05, 4), yt: ticks(0.55, 1.0, 9), xf: t => (t * 1000).toFixed(0), yf: t => t.toFixed(2),
+    xl: 'Circulation, L TEG / kg water absorbed', yl: 'Water removal (Win − Wout)/Win',
+    series, pts: [[circ * LKG_PER_GALLB / 1000, B.Ea, 'var(--e2)', 5]],
+    labels: Ns.map((N, i) => { const p = series[i].pts[0]; return [p[0], p[1] + 0.012, `N=${N}`, 'var(--e1)']; }),
+  });
+  $('remLeg').innerHTML = `<span><i style="border-color:var(--e1)"></i>Kremser, this basis (darker = more stages)</span><span><i style="border-color:var(--bad);border-top-style:dashed"></i>Spec ${(B.Ea * 100).toFixed(1)}%</span>${gLeg}`;
+
+  // ---- Structured panel ----
+  const chk = x => x.pass ? pill('ok', 'pass') + (x.tags.length ? ' ' + x.tags.map(t => pill('warn', t)).join(' ') : '') : x.why.map(t => pill('bad', t)).join(' ');
+  $('stTab').innerHTML = rk.st.map((x, i) => {
+    const d = x.d;
+    return `<tr class="${x.key === sKey ? 'sel' : ''}"><td class="num">${x.pass ? i + 1 : '✗'}</td><td>${x.name}</td><td class="num">${d.pk.a}</td><td class="num">${(d.pk.Fp_m * FT_M).toFixed(1)}</td><td class="num">${fmt(d.D_ft)}</td><td class="num">${(100 * d.pctFlood).toFixed(0)}</td><td class="num">${d.dPop.toFixed(2)}</td><td class="num">${fmt(d.hetp)}</td><td class="num">${fmt(x.Z, 1)}</td><td class="num">${money(x.bm)}</td><td>${chk(x)}</td></tr>`;
+  }).join('');
+  $('stNote').innerHTML = `<b>Capacity.</b> Perry's Eq 14-142 (Kister &amp; Gill): ΔP<sub>flood</sub> = 0.12 F<sub>p</sub><sup>0.7</sup>, read on the Kister–Gill GPDC for structured packing (Fig 14-56) at F<sub>LG</sub> ${FP.toFixed(4)}; capacity parameter C<sub>s</sub>F<sub>p</sub><sup>0.5</sup>ν<sup>0.05</sup> with ν = ${(B.liq.mu / B.liq.rho * 1e6).toFixed(1)} cS. Flood C<sub>s</sub> × system factor ${st.sf}, then the operating point or the allowable ΔP, whichever is lower. F<sub>p</sub> and a<sub>p</sub> from Table 14-14. `
+    + `<b>Wetting.</b> Kister, <i>Distillation Design</i> p.515: metal corrugated sheet performs down to 0.1 gpm/ft² (here ${sd.gpmft2.toFixed(2)}). <b>Efficiency.</b> Eq 14-160 (Harrison–France, Kister–Larson): HETP = 100 C<sub>XY</sub>/a<sub>p</sub> + 0.10 m, × 1.5 for glycols at 40–50 mN/m, × [1 + 0.278 |ln λ|³] (Strigle, λ = ${sd.lambda.toFixed(2)}). Perry's: rules of thumb are slightly conservative with good distribution. `
+    + `<b>Ranking.</b> No source gives a structured size-selection procedure, so every Table 14-14 packing is sized and ranked (Ludwig p.342: competitive designs). Order: passes every check, then shell + packing bare-module cost (Seider $285/ft³ for metal corrugated sheet; gauze, ceramic and plastic have no sourced price and rank after priced ones by packed volume). <b>Gaps.</b> the deck's structured mass-transfer reference (Bravo–Rocha–Fair) needs channel geometry it doesn't give. Fig 14-56 is a raster chart, read to about ±0.03 on the capacity parameter.`;
+
+  // ---- Bubble-cap panel ----
+  $('bcTab').innerHTML = [
+    ['Flow parameter', 'Eq 14-89', FP.toFixed(4), 'Mass L/G × (ρ<sub>G</sub>/ρ<sub>L</sub>)<sup>0.5</sup>, same as the packed F<sub>P</sub>.'],
+    ['Flood capacity C<sub>sbf</sub>', 'Eq 14-90 (Fair, Fig 14-32)', `${td.Csbf.toFixed(4)} m/s`, `Tray spacing ${o.trayIn} in (${td.TS.toFixed(0)} mm). Perry's: "may be used for sieve, valve, or bubble-cap trays".`],
+    ['Net-area flood velocity', 'Eq 14-91', `${(td.Unf / st.sf).toFixed(3)} → ${td.Unf.toFixed(3)} m/s`, `σ correction (σ/20)<sup>0.2</sup> at ${(B.liq.sigma * 1000).toFixed(0)} mN/m, then × ${st.sf} (Table 14-9, glycol contactors). Fair's restriction 1 is "low or nonfoaming".`],
+    ['Operating velocity, areas', 'p.14-35 (80–90% of flood)', `${td.Un.toFixed(3)} m/s · A<sub>N</sub> ${td.AN.toFixed(2)} m² · A<sub>T</sub> ${td.AT.toFixed(2)} m²`, `Downcomer ${Math.round(100 * o.adFrac)}% of tower area (placeholder). D = ${fmt(td.D_ft)} ft (${(td.D * 1000).toFixed(0)} mm).`],
+    ['O\'Connell parameter', 'Fig 14-9, P/(Hμ) = ρ<sub>L</sub>/(K M μ<sub>L</sub>)', td.X.toFixed(1), `K ${td.K.toExponential(2)} (geometric mean of the column ends), M ${td.M.toFixed(0)}, μ ${(B.liq.mu * 1000).toFixed(1)} cP, ρ<sub>L</sub> ${(B.liq.rho * RHO_TO_LBFT3).toFixed(1)} lb/ft³.`],
+    ["O'Connell efficiency (reference)", 'Fig 14-9', `${td.offChart ? '≥ ' : ''}${(100 * td.Eoc).toFixed(0)}%`, td.offChart ? 'Off chart: the curve ends at 10 (about 63%). Water into TEG is very soluble (small K) and viscous, which puts it beyond the hydrocarbon-absorber data the chart was built on.' : 'In range.'],
+    ['AIChE N<sub>V</sub> / N<sub>L</sub>', 'Eqs 13-77/78', `${td.ai.NV.toFixed(2)} / ${td.ai.NL.toFixed(1)}`, `F<sub>s</sub> ${td.ai.Fs.toFixed(2)} on the bubbling area; Sc<sub>V</sub> ${td.ai.ScV.toFixed(2)}; weir ${o.weirMm} mm + crest ${(td.ai.how * 1000).toFixed(1)} mm = h<sub>L</sub> ${(td.ai.hL * 1000).toFixed(0)} mm; t<sub>L</sub> ${td.ai.tL.toFixed(0)} s on a ${td.ai.Z.toFixed(2)} m path, ${td.ai.W.toFixed(2)} m weir. Gas film carries ${(100 * td.ai.gasFilm).toFixed(0)}% of the resistance.`],
+    ['AIChE efficiencies', 'Fig 14-42; Eqs 14-137, 14-135', `E<sub>OG</sub> ${(100 * td.ai.EOG).toFixed(0)}% · E<sub>MV</sub> ${(100 * td.ai.EMV).toFixed(0)}% · E<sub>OC</sub> ${(100 * td.ai.EOC).toFixed(0)}%`, "Point → Murphree (Lewis case 1) → overall. Perry's p.14-50: fundamental methods tend to over-predict; field 25–33% (GPSA, ARCO)."],
+    ['Actual trays · tray section', 'N / E', `${td.trays} trays · ${fmt(td.height, 1)} m`, `On graphical N ${fmt(Ng)} with ${td.method === 'aiche' ? 'AIChE' : "O'Connell"} E${td.lowerBound ? '; a lower bound because E is capped' : ''}. Add disengagement and sump height (not in the deck).`],
+    ['Fair restrictions not yet checkable', 'p.14-36', '–', 'Weir height &lt; 15% of spacing; slot area / active area ≥ 0.1 (else derate U<sub>nf</sub> 0.9–0.8). Both are mechanical details past FEL-1.'],
+  ].map(rw => `<tr><td>${rw[0]}</td><td>${rw[1]}</td><td class="num">${rw[2]}</td><td>${rw[3]}</td></tr>`).join('');
+
+  // ---- Random panel ----
+  $('sizeTab').innerHTML = rk.rd.map((x, i) => {
+    const h = x.r.H, z = x.r.size;
+    return `<tr class="${x.key === pkKey ? 'sel' : ''}"><td class="num">${x.pass ? i + 1 : '✗'}</td><td>${x.name}</td><td>${PACKINGS[x.key].leva ? 'Leva (deck)' : 'GPDC Fig 14-55'}</td><td class="num">${h.D_ft.toFixed(2)} (${z.D_in.toFixed(0)})</td><td class="num">${h.dPop.toFixed(2)}</td><td class="num">${fmt(x.Z, 2)}</td><td class="num">${money(x.bm)}</td><td>${chk(x)}</td></tr>`;
+  }).join('');
+  $('sizeNote').innerHTML = `Ranking: passes every check (spec, Table 9-25 wetting by surface, Table 9-27 max load, <i>Random Packing Size Selection</i>), then shell + packing bare-module cost where Seider Table 16.27 prices the packing, then packed volume for unpriced packings. ${rk.rd.filter(x => x.pass).length} of ${rk.rd.length} pass at this case. Auto picks <b>${PACKINGS[pkKey].name}</b>${auto ? '' : ' (your pick)'}. Onda uses σ<sub>c</sub> 61 (ceramic), 75 (steel), 33 (polyethylene, used for polypropylene). Ceramic is not screened for breakage (no mechanical step in the MOC methodology). Leva and the Fig 14-55 GPDC are two methods; expect scatter between them.`;
+  const verdict = h => !Number.isFinite(h) ? pill('bad', 'n/a') : h < hr.lo / 2 ? pill('bad', `${(hr.lo / h).toFixed(0)}× low`) : h > hr.hi * 2 ? pill('bad', `${(h / hr.hi).toFixed(1)}× high`) : h < hr.lo * 0.8 || h > hr.hi * 1.25 ? pill('warn', `${(100 * (h / ((hr.lo + hr.hi) / 2) - 1)).toFixed(0)}%`) : pill('ok', `${(100 * (h / ((hr.lo + hr.hi) / 2) - 1)).toFixed(0)}%`);
+  const hRows = [];
+  for (const [a, lab] of [['onda', 'Onda a<sub>w</sub>'], ['dry', 'Dry a<sub>p</sub>'], ['bf', 'Bravo–Fair a<sub>e</sub>']]) for (const liq of [false, true]) {
+    const rr = rateBased(B, wLean, circ, pkKey, { ...o, area: a, liquidSide: liq });
+    const h = rr.HOG * conv;
+    hRows.push(`<tr class="${a === st.area && liq === o.liquidSide ? 'sel' : ''}"><td>${lab}${liq ? ' + liquid film' : ', gas film'}</td><td class="num">${rr.mt.HG.toFixed(3)}</td><td class="num">${(rr.lambda * rr.mt.HL).toFixed(3)}</td><td class="num">${rr.mt.aeRatio.toFixed(2)}</td><td class="num">${fmt(h, 2)}</td><td>${verdict(h)}</td></tr>`);
+  }
+  hRows.unshift(`<tr><td><b>Perry's rule</b>: 18 D<sub>p</sub> / 93/a<sub>p</sub> × ${hr.fSig} (glycol σ) × ${hr.fLam.toFixed(2)} (Strigle λ = ${r.lambda.toFixed(2)})</td><td class="num">–</td><td class="num">–</td><td class="num">–</td><td class="num">${hr.lo.toFixed(2)}–${hr.hi.toFixed(2)}</td><td>${pill('ok', 'benchmark')}</td></tr>`);
+  $('hetpTab').innerHTML = hRows.join('');
+  $('hetpNote').innerHTML = `HETP = H<sub>OG</sub> · ln λ/(λ − 1) (Perry's Eq 14-153), factor ${conv.toFixed(2)} here. Perry's (Kister): rules of thumb "are more accurate and more reliable than mass-transfer models"; Bravo–Fair "produced large discrepancies when compared to test data"; maldistribution can raise HETP 2–3×.`;
+  const dlRows = [['tc', 'Perry\'s Table 5-14, Eq 5-215', pill('ok', 'inside limits'), 'μ<sub>B</sub> &lt; 30 cP; water as dimer'],
+                  ['wc', 'Table 5-14, Eq 5-214', pill('warn', 'caveated'), '"not very accurate for water as the solute"'],
+                  ['ol', 'Perry\'s text (Olander)', pill('warn', 'caveated'), 'not accurate "for higher-viscosity liquids, especially diols"'],
+                  ['se', 'Eq 5-213', pill('bad', 'outside'), 'needs M &gt; 1000 or V &gt; 500 cm³/mol']];
+  $('dlTab').innerHTML = dlRows.map(([kk, src, p, why]) => {
+    const zz = rateBased(B, wLean, circ, pkKey, { ...o, liquidSide: true, dlMethod: kk }).Z;
+    return `<tr class="${kk === st.dl ? 'sel' : ''}"><td>${DL_METHODS[kk]}</td><td>${src}</td><td class="num">${(diffLiq(B, kk) * 1e4).toExponential(2)}</td><td class="num">${fmt(zz, 2)}</td><td>${p} ${why}</td></tr>`;
+  }).join('') + `<tr><td>Fuller–Schettler–Giddings (gas)</td><td>Table 5-11, Eq 5-202</td><td class="num">${(mt.DG * 1e4).toExponential(2)}</td><td class="num">–</td><td>${pill('warn', 'extrapolated')} scaled 1/P to ${(B.P_kPa / 100).toFixed(0)} bar</td></tr>`;
+  const zs = { bf: [], onda: [], dry: [] };
+  for (let c = 1.2; c <= 6.01; c += 0.2) for (const a of Object.keys(zs)) {
+    const rr = rateBased(B, wLean, c, pkKey, { ...o, area: a });
+    if (Number.isFinite(rr.Z)) zs[a].push([c, rr.Z]);
+  }
+  const zMax = Math.min(16, Math.max(4, ...Object.values(zs).flat().map(p => p[1])) * 1.1);
+  chart($('zc'), {
+    x: [1, 6], y: [0, zMax], xt: ticks(1, 6, 5), yt: ticks(0, Math.ceil(zMax), Math.min(8, Math.ceil(zMax))), xf: t => t.toFixed(0), yf: t => t.toFixed(0),
+    xl: 'Circulation, gal TEG / lb water', yl: 'Packed height Z, m',
+    series: [{ pts: zs.bf, c: 'var(--e2)' }, { pts: zs.onda, c: 'var(--e1)' }, { pts: zs.dry, c: 'var(--muted)', dash: '5 4' },
+             { pts: [[1.5, 0], [1.5, zMax]], c: 'var(--rule)', w: 1 }, { pts: [[3, 0], [3, zMax]], c: 'var(--rule)', w: 1 }],
+    pts: Number.isFinite(r.Z) ? [[circ, r.Z, st.area === 'onda' ? 'var(--e1)' : st.area === 'dry' ? 'var(--muted)' : 'var(--e2)', 5]] : [],
+    labels: [[1.5, zMax * 0.97, 'RoT 1.5'], [3, zMax * 0.97, '3 gal/lb']],
+  });
+  const bedLimitLo = 3 * H.D, bedLimitHi = 10 * H.D;
+  $('checks').innerHTML = [
+    ['Sherwood flooding chart range', `${S.f2} (Ludwig Fig 9-21A)`, H.FP.toFixed(4), '0.01–10', H.offSherwood ? pill('bad', 'off chart') : pill('ok', 'in range')],
+    ['Operating ΔP (Leva, Table 9-33A)', `${S.adp}; ${S.f1}`, `${H.dPop.toFixed(2)} in/ft`, `≤ ${o.dPallow.toFixed(2)}`, H.dPop <= o.dPallow + 1e-9 ? pill('ok', 'pass') : pill('bad', 'fail')],
+    ['Fraction of flood', `${S.band} · ${AB('Packed Towers')}`, `${(100 * H.pctFlood).toFixed(0)}%`, '60–80% · 40–70%', H.pctFlood >= 0.6 && H.pctFlood <= 0.7 ? pill('ok', 'in both') : H.pctFlood >= 0.4 && H.pctFlood <= 0.8 ? pill('warn', 'in one band') : pill('bad', 'outside both')],
+    ['Max liquid loading', `${S.wet}, Table 9-27`, `${H.gpmft2.toFixed(2)} gpm/ft²`, `≤ ${H.maxLoad}`, H.gpmft2 <= H.maxLoad ? pill('ok', 'pass') : pill('bad', 'fail')],
+    [`Min wetting rate, Table ${H.mwrTable}`, `${S.wet}, Eq ${H.mwrTable === '9-25' ? '9-15' : '9-14'}`, `${H.gpmft2.toFixed(2)} gpm/ft²`, `≥ ${H.mwrGov.toFixed(2)}`, H.wets ? pill('ok', 'pass') : pill('bad', `fail ×${(H.mwrGov / H.gpmft2).toFixed(1)}`)],
+    ['Distributor vapor C-factor', S.drip, `${H.Cs_fts.toFixed(3)} ft/s`, '< 0.4', H.Cs_fts < 0.4 ? pill('ok', 'pass') : pill('bad', 'fail')],
+    ['Onda gas range G/(a·μ)', "Perry's 5-24-C", mt.ReGo ? mt.ReGo.toFixed(0) : '–', '5–1000', mt.ondaGOK ? pill('ok', 'in range') : pill('bad', 'out of range')],
+    ['Onda liquid range L/(a<sub>w</sub>·μ)', "Perry's 5-24-C", mt.LonOnda ? mt.LonOnda.toFixed(2) : '–', '4–400', mt.ondaLOK ? pill('ok', 'in range') : pill('bad', 'out of range')],
+    ['Bed depth vs redistribution', S.redis, `${fmt(r.Z, 2)} m`, `${bedLimitLo.toFixed(1)}–${bedLimitHi.toFixed(1)} m (3–10 D)`, !Number.isFinite(r.Z) ? pill('bad', 'n/a') : r.Z <= bedLimitLo ? pill('ok', 'single bed') : r.Z <= bedLimitHi ? pill('warn', 'Pall not listed') : pill('bad', 'redistribute')],
+    ['Rich TEG inside Fig 20-54', 'GPSA basis data', `${kd.wRich.toFixed(1)} wt%`, '≥ 95.0', kd.wRich >= 95 ? pill('ok', 'in range') : pill('warn', 'extrapolated')],
+  ].map(rw => `<tr><td>${rw[0]}</td><td>${rw[1]}</td><td class="num">${rw[2]}</td><td class="num">${rw[3]}</td><td>${rw[4]}</td></tr>`).join('');
+
+  // ---- GPSA comparison: only the selected internals ----
+  $('gpsaPanel').hidden = !showG;
+  if (showG) {
+    $('gpsaTitle').textContent = `GPSA comparison · ${TYPES[typ]}`;
+    const common = [
+      ['Stage method', `graphical ${fmt(Ng)} / Kremser ${fmt(Nk)}`, 'Figs 20-55–59 (Kremser-type)', 'Same method; on Ex 20-11 this engine gives 0.883 / 0.922 vs the chart\'s 0.885 / 0.925 at N = 1.5 / 2.'],
+      ['Circulation', `${(circ * LKG_PER_GALLB).toFixed(1)} L/kg`, '15–40 L/kg "most economical"', circ * LKG_PER_GALLB >= 15 && circ * LKG_PER_GALLB <= 40 ? pill('ok', 'inside') : pill('warn', 'outside')],
+    ];
+    const byType = {
+      st: [
+        ['Design C-factor', `${sd.Cs.toFixed(3)} m/s at ${(100 * sd.pctFlood).toFixed(0)}% flood (flood ${sd.CsFlood.toFixed(3)})`, '0.091–0.122 m/s, "depending on packing density and vendor"', `GPSA's range is ${(100 * 0.091 / sd.CsFlood).toFixed(0)}–${(100 * 0.122 / sd.CsFlood).toFixed(0)}% of this tool's flood C-factor (${sfTxt}).`],
+        ['F-factor', `${(sd.uG * Math.sqrt(B.rhoG)).toFixed(2)} m/s·(kg/m³)<sup>0.5</sup>`, 'F<sub>s</sub> 3.0–3.7', ''],
+        ['Diameter', `${fmt(sd.D_ft)} ft`, `${rng(dFromC(0.122), dFromC(0.091))} ft from the C range`, ''],
+        ['HETP', `${fmt(sd.hetp)} m (Perry's rule)`, '≈ 1.5 m (Ex 20-11: 2 stages ≅ 3 m)', `${(100 * (sd.hetp / 1.5 - 1)).toFixed(0)}% vs GPSA. The rule carries the glycol σ and λ corrections for these conditions.`],
+      ],
+      bc: [
+        ['Capacity factor', `${td.Cs.toFixed(3)} m/s on the total area (${sfTxt})`, `K ${bcK[1]} m/s at ${bcK[0]} cm spacing`, `Without the foaming factor Fair gives ${(td.Cs / st.sf).toFixed(3)} m/s. GPSA's K is ${(100 * bcK[1] / (td.Cs / st.sf)).toFixed(0)}% of that.`],
+        ['Diameter', `${fmt(td.D_ft)} ft`, `${fmt(dFromC(bcK[1]))} ft from K`, ''],
+        ['Tray efficiency', `${td.offChart ? '≥ ' : ''}${(100 * td.E).toFixed(0)}% (O'Connell${td.offChart ? ', off chart' : ''})`, '25–30%', `AIChE gives ${(100 * td.ai.EOC).toFixed(0)}%, ${(100 * td.ai.EOC / 0.275 - 100).toFixed(0)}% above GPSA's midpoint: the over-prediction Perry's warns of. GPSA's field value is under half of O'Connell's chart ceiling, which does not hold for TEG.`],
+        ['Trays · tray section', `${td.trays} · ${fmt(td.height, 1)} m`, `${gTrays[0]}–${gTrays[1]} trays · ${fmt(gTrays[0] * 0.6, 1)}–${fmt(gTrays[1] * 0.6, 1)} m at 0.6 m`, ''],
+        ['Tray spacing', `${o.trayIn} in`, '0.6 m (24 in)', ''],
+      ],
+      rd: [
+        ['Design C-factor', `${H.Cs.toFixed(3)} m/s`, GPSA_PALL_C[pkKey] ? `${GPSA_PALL_C[pkKey].join('–')} m/s (${pkName})` : `${pkName} not listed (1 in and 2 in only)`, GPSA_PALL_C[pkKey] ? (H.Cs <= GPSA_PALL_C[pkKey][1] ? pill('ok', 'inside or below') : pill('warn', 'above')) : ''],
+        ['HETP', `${fmt(hetpRd)} m (model)`, 'Sec 20: none for random packing', pkKey === 'pall50' ? 'Sec 19 Fig 19-24: 0.85–0.88 m for 2 in Pall in lean-oil absorbers; TEG adds ×1.5 (σ) and the λ factor.' : 'No GPSA figure for this packing.'],
+        ['Wetting', H.wets ? 'wets' : "doesn't wet", 'not addressed', ''],
+      ],
+    }[typ];
+    $('gtab').innerHTML = [...common, ...byType, ['Contactor height allowance', 'none in the deck', '+1.8–3 m disengagement and sump', 'Deck gap.']]
+      .map(rw => `<tr><td>${rw[0]}</td><td class="num">${rw[1]}</td><td>${rw[2]}</td><td>${rw[3]}</td></tr>`).join('');
+  }
+
+  // ---- MOC screening (methodology Steps 1-6, by component) ----
+  $('moc').innerHTML = [
+    ['Step 1 · agents', 'Water (gas is saturated; the rich end carries the most). CO₂: "sweet" means no H₂S, not no CO₂, and the composition is still open; with water it gives carbonic acid. Oxygen ingress oxidizes TEG to acids, and "a low pH accelerates decomposition of glycols" (GPSA Sec 20). Chlorides arrive only with brine carryover, which the inlet scrubber exists to stop (GPSA Sec 20).'],
+    ['Step 1a · segment by component', 'Shell and heads: thick plate that can carry a corrosion allowance. Packing: thin sheet that cannot. Trays sit in between.'],
+    ['Step 2 · governing unknown', 'CO₂ partial pressure (gas composition), then glycol pH in service. Indicator: lean and rich TEG pH by routine sampling.'],
+    ['Step 3 · matrix', `Shell, carbon steel: △ (manage with a corrosion allowance). Packing, carbon steel: ✗ (Step 6's mitigation is a corrosion allowance, and packing sheet has no room for one, so any moderate rate consumes it). Packing, 304L/316L: ✓, with no halide mechanism unless brine carries over (Step 1d then applies).`],
+    ['Step 5 · decision', '<b>Shell carbon steel with a corrosion allowance; packing 304L/316L stainless.</b> Re-run when the gas composition (CO₂) is set.'],
+    ['Effect on sizing', `${S.wet}: Table 9-25 minimum wetting is about 4× higher for bright metal (stainless) than for oxidized carbon steel, so stainless random packing does not wet at this liquid rate. Structured packing has no sourced minimum (gap).`],
+  ].map(([a, b]) => `<div><b>${a}</b><span>${b}</span></div>`).join('');
+
+  LAST = { typ, B, wLean, circ, o, sd, td, r, H, kd, Ng, cost, dObj, pkName, surf: o.surface, tier, sKey, pkKey };
+
+  // ---- Findings (proposed deck changes; slide titles, not numbers) ----
+  const dlSpread = ['tc', 'wc', 'ol'].map(kk => diffLiq(B, kk) * 1e4);
+  const bcNoSf = td.Cs / st.sf;
+  $('findings').innerHTML = [
+    `<b>No structured-packing or tray sizing steps in the decks.</b> Proposed from Perry's 9th Sec 14: structured flood by Kister–Gill (Eq 14-142 on Fig 14-56) and HETP by Eq 14-160; bubble-cap flood by Fair (Eq 14-90/91) and efficiency by O'Connell (Fig 14-9). Without them the Internals Selection Map recommends internals the deck cannot size.`,
+    `<b>Glycol contactors are foaming service.</b> Perry's Table 14-9 gives system factors of 0.73, 0.65 and 0.50 (0.50 for non-syngas glycol contactors). With 0.50 applied, Fair's bubble-cap capacity (${(bcNoSf * 0.5).toFixed(3)} m/s) reproduces GPSA's K (0.049 m/s at 60 cm). The deck asks about foaming only on the tray branch.`,
+    (() => { const s1 = structuredDesign(B, wLean, circ, sKey, { ...o, sf: 1 }); return `<b>GPSA's structured C-factor implies little or no foaming derating.</b> Its 0.091–0.122 m/s is ${(100 * 0.091 / s1.CsFlood).toFixed(0)}–${(100 * 0.122 / s1.CsFlood).toFixed(0)}% of the underated Kister–Gill flood C-factor for ${s1.pk.name} (${s1.CsFlood.toFixed(3)} m/s), which is above every Table 14-9 factor. The same table reproduces GPSA's bubble-cap K. Either structured packing tolerates TEG foaming better, or GPSA runs structured packing closer to flood; neither source says which.`; })(),
+    `<b>Tray efficiency now runs on the AIChE method</b> (Perry's 9th Eqs 13-72 to 13-78 → Fig 14-42 → Eqs 14-137, 14-135): E<sub>OC</sub> ${(100 * td.ai.EOC).toFixed(0)}% at a ${o.weirMm} mm weir, against GPSA's field 25–30% (Perry's: fundamental methods over-predict). O'Connell (≈ ${td.X.toFixed(0)}, chart ends at 10 ≈ 63%) is off chart and kept for reference. Proposed deck step: AIChE efficiency with the field value as the check.`,
+    `<b>Distributor quality barely moves height here.</b> Moore–Rukovena (Perry's Fig 14-63b) loses ~0 stages below 2 stages per bed, and Lockett–Billingham f<sub>max</sub> is ${fmt(fm.f)} (${fm.cls}) because circulation runs ${(circ / fm.cmin).toFixed(0)}× the pinch minimum. Distributor choice matters through plugging (the top cause in <i>Liquid Distributor Heuristics</i>' failure table), low-liquid-rate rating and cost.`,
+    `<b>Structured packing gaps:</b> no size-selection procedure in any source (the tool ranks competing designs instead), and the mass-transfer reference (Bravo–Rocha–Fair) lacks channel geometry. The Eq 14-160 rule lands within ${Math.abs(100 * (structuredDesign(B, wLean, circ, 'm250y', o).hetp / 1.5 - 1)).toFixed(0)}% of GPSA's 1.5 m for 250Y.`,
+    `<b>Random packing is not only Pall.</b> Of ${rk.rd.length} Table 14-13 packings, ${rk.rd.filter(x => x.pass).length} pass at this case: ${[...new Set(rk.rd.filter(x => x.pass).map(x => FAMILIES[PACKINGS[x.key].fam]))].join(', ') || 'none'}. Unglazed ceramic has the lowest Table 9-25 minimum (0.187 gpm/ft²). Structured: ${rk.st.filter(x => x.pass).length} of ${rk.st.length} pass.`,
+    `<b>Packing-size step: resolved.</b> <i>Random Packing Size Selection</i> now carries Ludwig p.279 and Robbins; the tool follows it (p.297 dropped).`,
+    `<b>Liquid diffusivity has no route designed for water in a diol.</b> Routes span ${Math.min(...dlSpread).toExponential(1)}–${Math.max(...dlSpread).toExponential(1)} cm²/s; only Tyn–Calus is inside Perry's limits.`,
+    `<b>No HETP sanity check.</b> Perry's rules (Eq 14-156/159/160 × glycol factor × Strigle λ) should check any model height, as Perry's recommends.`,
+    `<b>Structured vs Random circularity: first guess from Rules of Thumb Table 11</b> (C-factor ranges). Here it gives ${dec.guess.D[0].toFixed(1)}–${dec.guess.D[1].toFixed(1)} ft (${dec.pass1}); the computed diameter settles it. Proposed deck line: first pass D from the Table 11 C-factor, confirmed with packing hydraulics.`,
+    `<b>Flood band source tags:</b> 40–70% (Encyclopedia, ${AB('Packed Towers')}) and 60–80% (Ludwig, ${S.band}); cite each.`,
+    `Kremser (N ${fmt(Nk)}) and graphical stepping (N ${fmt(Ng)}) differ because liquid moles grow ~${fmt(100 * (kd.S.Lp * (1 + XN) - kd.S.L0) / kd.S.L0, 0)}% down the tower; ${S.kr} narrates the varying-L correction without written steps.`,
+    `${S.f2}: the Sherwood chart starts at F<sub>P</sub> 0.01, so this service is off-chart for random packing.`,
+    'Missing deck steps: overall vessel-height allowance and high-pressure gas diffusivity.',
+    'EOS step 5 picks PC-SAFT for dry-gas density from a saturated-liquid density ranking; Kremser K for water over TEG has no EOS route, so it comes from GPSA Figs 20-54 and 20-3.',
+  ].map(t => `<li>${t}</li>`).join('');
+}
+// ---------------------------------------------------------------------------
+// Absorber datasheet: Coulson & Richardson Vol 6 App G template (datasheet_template.js), filled with pdf-lib.
+// Positions = label coordinates from the template's text layer (build_datasheet_template.py); y is the label top.
+// ---------------------------------------------------------------------------
+let LAST = null;
+const KGS_TO_LBH = 7936.641, KGM3_TO_LBFT3 = 0.062428;
+async function downloadDatasheet() {
+  const L = LAST, btn = $('btnDatasheet'), status = $('dsStatus');
+  if (!L || typeof PDFLib === 'undefined' || typeof DATASHEET_PDF_B64 === 'undefined') { status.textContent = 'Datasheet unavailable (template or pdf-lib missing).'; return; }
+  const c = L.cost[L.typ];
+  if (!c || !c.ok) { status.textContent = 'No design at this case (spec unreachable), so there is nothing to fill.'; return; }
+  btn.disabled = true; status.textContent = 'Building…';
+  try {
+    const { PDFDocument, StandardFonts, rgb } = PDFLib;
+    const pdf = await PDFDocument.load(Uint8Array.from(atob(DATASHEET_PDF_B64), ch => ch.charCodeAt(0)));
+    const font = await pdf.embedFont(StandardFonts.Helvetica);
+    // Field positions are relative to each page's visible CropBox (the template pages sit inside a larger MediaBox)
+    const put = (pg, x, yTop, txt, size = 5.9) => {
+      if (txt === undefined || txt === null || txt === '') return;
+      const page = pdf.getPage(pg), cb = page.getCropBox();
+      page.drawText(String(txt), { x: cb.x + x, y: cb.y + cb.height - yTop - 5.0, size, font, color: rgb(0.05, 0.15, 0.55) });
+    };
+    const B = L.B, cs = c.hi, sh = cs.sh;                              // upper GPSA height allowance (conservative length)
+    const D_in = c.D_ft * 12, R_in = D_in / 2, tc = sh.t - sh.CA;
+    const MAWP = sh.S * sh.E * tc / (R_in + 0.6 * tc);                 // UG-27 inverted on the corroded wall
+    const intName = { st: STRUCTURED[L.sKey].name + ' structured packing', rd: PACKINGS[L.pkKey].name + ' random packing', bc: `${L.td.trays} bubble-cap trays at ${L.o.trayIn} in spacing` }[L.typ];
+    const matInt = { ss: 'stainless 304L/316L', cs: 'carbon steel', treated: 'surface-treated metal', none: 'per MOC review' }[L.surf];
+    const sgTEG = (B.liq.rho / 999.0).toFixed(3);
+    const volFt3 = Math.PI / 4 * c.D_ft ** 2 * cs.L + Math.PI * c.D_ft ** 3 / 12;   // shell + two 2:1 heads
+    const tag = 'C-101', desc = 'TEG contactor';
+    // ---- Vessel data sheet (page 0) ----
+    put(0, 373, 71, tag); put(0, 362, 81, desc, 5.6); put(0, 348, 88, `1 of ${L.typ === 'bc' ? 2 : 1}`);
+    put(0, 165, 114, '1'); put(0, 305, 114, `${volFt3.toFixed(0)} ft3 (${(volFt3 * 0.0283168).toFixed(1)} m3)`);
+    put(0, 165, 121, `${sgTEG} (lean TEG)`); put(0, 316, 121, 'yes');
+    put(0, 165, 136, 'Wet natural gas / TEG');
+    put(0, 165, 144, `${D_in.toFixed(1)} in ID`);
+    put(0, 165, 151, `${cs.L.toFixed(1)} ft tangent to tangent`);
+    put(0, 165, 158, 'ASME BPVC Section VIII Div. 1');
+    put(0, 165, 166, `${MAWP.toFixed(0)} psig (corroded)`);
+    put(0, 165, 173, `${sh.Pd.toFixed(0)} psig (op. ${B.P_psig})`);
+    put(0, 165, 181, `${B.T_F} °F`.replace('°', ' deg'));
+    put(0, 165, 188, `${B.T_F + 50} deg F (op. + 50)`);
+    put(0, 165, 196, `${(1.3 * MAWP).toFixed(0)} psig (UG-99)`);
+    put(0, 165, 211, `Shell SA-516-70; internals ${matInt}`);
+    put(0, 165, 218, sh.E.toFixed(2)); put(0, 165, 226, `${sh.CA.toFixed(3)} in`); put(0, 165, 233, `${sh.t.toFixed(3)} in nominal`);
+    put(0, 165, 241, '2:1 ellipsoidal'); put(0, 235, 241, `${sh.t.toFixed(3)} in`); put(0, 355, 241, sh.E.toFixed(2));
+    put(0, 165, 255, 'Skirt'); put(0, 165, 263, 'Seider Eq 16.62');
+    put(0, 237, 308, `${Math.round(sh.W).toLocaleString()} lb`);
+    put(0, 125, 322, 'See remarks', 5.6);
+    const today = new Date().toISOString().slice(0, 10);
+    const rem = [
+      `Internals: ${intName}. Diameter: ${L.typ === 'bc' ? `Fair flood, ${Math.round(L.o.trayFlood * 100)}% of flood` : `${Math.round(L.o.fracFlood * 100)}% flood or ${(L.typ === 'st' ? L.o.dPallowSt : L.o.dPallow).toFixed(2)} in H2O/ft, whichever governs`}; foaming factor ${st.sf}.`,
+      `Case: ${B.Q_MMSCFD} MMSCFD, ${B.P_psig} psig, ${B.T_F} F; outlet ${B.Wout_lb} lb/MMSCF; lean TEG ${L.wLean} wt%, ${L.circ} gal/lb; ${L.Ng.toFixed(2)} theoretical stages.`,
+      (L.typ === 'bc' ? 'Tray internals on sheet 2. ' : `Distributor: ${L.dObj ? L.dObj.name : 'none qualifies at this fouling tier'}. `) + `Length = internals ${(c.H_m / FT_M).toFixed(1)} ft + ${(GPSA_ALLOW_M[1] / FT_M).toFixed(1)} ft (GPSA upper allowance).`,
+      `MAWP from UG-27 on the corroded wall; hydrotest 1.3 x MAWP (UG-99). Weight = shell + heads. FEL-1 screening, ${today}. Nozzles not sized.`,
+    ];
+    rem.forEach((t, i) => put(0, 66, 360 + 7.5 * i, t, 5.4));
+    put(0, 95, 555, desc); put(0, 100, 565, tag);
+    // ---- Column tray data sheet (page 1), bubble caps only ----
+    if (L.typ === 'bc') {
+      const td = L.td, mGdry = B.Vdry * B.gasMW, wIn = B.Vdry * B.Yin * MW_W, wOut = B.Vdry * B.Yout * MW_W;
+      const lean = L.kd.S.m, rich = lean + B.water_kgs, rG = B.rhoG * KGM3_TO_LBFT3, rL = B.liq.rho * KGM3_TO_LBFT3;
+      put(1, 413, 71, tag); put(1, 403, 81, desc, 5.6); put(1, 389, 88, '2 of 2');
+      put(1, 412, 112, `${D_in.toFixed(1)} in`); put(1, 412, 119, `${L.o.trayIn} in`); put(1, 412, 127, `${td.trays}`);
+      put(1, 300, 160, `${((mGdry + wOut) * KGS_TO_LBH).toFixed(0)}`); put(1, 360, 160, `${((mGdry + wIn) * KGS_TO_LBH).toFixed(0)}`);
+      put(1, 300, 167, rG.toFixed(2)); put(1, 360, 167, rG.toFixed(2));
+      put(1, 300, 175, `${B.P_psig} psig`); put(1, 360, 175, `${B.P_psig} psig`);
+      put(1, 300, 182, `${B.T_F} F`); put(1, 360, 182, `${B.T_F} F`);
+      put(1, 300, 197, `${(lean * KGS_TO_LBH).toFixed(0)}`); put(1, 360, 197, `${(rich * KGS_TO_LBH).toFixed(0)}`);
+      put(1, 300, 205, rL.toFixed(1)); put(1, 360, 205, rL.toFixed(1));
+      put(1, 300, 212, `${B.T_F} F`); put(1, 360, 212, `${B.T_F} F`);
+      put(1, 300, 219, (B.liq.mu * 1000).toFixed(1)); put(1, 360, 219, (B.liq.mu * 1000).toFixed(1));
+      put(1, 412, 227, '1');
+      const matShort = { ss: 'SS 304L/316L', cs: 'Carbon steel', treated: 'Treated metal', none: 'per MOC' }[L.surf];
+      put(1, 412, 260, matShort); put(1, 412, 275, matShort); put(1, 412, 349, 'Yes');
+      [`Bubble-cap trays; ${td.trays} actual on ${L.Ng.toFixed(2)} theoretical stages at E_OC ${(100 * td.E).toFixed(0)}% (${td.method === 'aiche' ? 'AIChE, Perry\'s Sec 13' : "O'Connell"}); field 25-30% (GPSA).`,
+       `Design ${Math.round(L.o.trayFlood * 100)}% of Fair flood with foaming factor ${st.sf}; downcomer ${Math.round(L.o.adFrac * 100)}% of area; weir ${L.o.weirMm} mm.`,
+       'Vapour = wet gas in at bottom, dry gas out at top; liquid = lean TEG in at top, rich TEG out at bottom. Rates in lb/hr, densities lb/ft3.',
+       `FEL-1 screening, TEG Contactor Sizer ${new Date().toISOString().slice(0, 10)}. Tray supplier to confirm layout and efficiency.`,
+      ].forEach((t, i) => put(1, 107, 465 + 7.7 * i, t, 5.4));
+    } else {
+      pdf.removePage(1);
+    }
+    const blob = new Blob([await pdf.save()], { type: 'application/pdf' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = `TEG-contactor-datasheet-${L.typ}.pdf`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    status.textContent = `Downloaded (${L.typ === 'bc' ? 'vessel + tray sheets' : 'vessel sheet'}).`;
+  } catch (e) {
+    status.textContent = 'Could not build the datasheet: ' + e.message;
+  } finally { btn.disabled = false; }
+}
+$('btnDatasheet').addEventListener('click', downloadDatasheet);
+
+// Reset: every input back to its markup default, segmented buttons back to their initial pressed state, the
+// remembered per-type pressure drops and manual picks cleared. Snapshots are taken before the first render.
+const SEG0 = [...document.querySelectorAll('.seg')].map(g => [g, [...g.querySelectorAll('button')].map(b => b.getAttribute('aria-pressed'))]);
+const EL0 = [...document.querySelectorAll('aside input, aside select')].map(el => [el, el.type === 'checkbox' ? el.checked : el.value]);
+$('resetAll').addEventListener('click', () => {
+  EL0.forEach(([el, v]) => { if (el.type === 'checkbox') el.checked = v; else if (el.tagName === 'SELECT') el.value = 'auto' in el.dataset ? 'auto' : v; else el.value = v; });
+  ['spk', 'pk', 'dist'].forEach(id => { $(id).value = 'auto'; });
+  SEG0.forEach(([g, pressed]) => g.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', pressed[i] ?? 'false')));
+  Object.keys(st).forEach(k => delete st[k]); Object.assign(st, ST0);
+  for (const k in lastOK) delete lastOK[k];
+  document.querySelectorAll('input[type=number]').forEach(el => el.classList.remove('bad'));
+  render();
+});
+render();
+})();
+</script>
+</body>
+</html>
