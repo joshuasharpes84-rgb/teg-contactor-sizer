@@ -17,7 +17,7 @@ assistant with your case and it has what it needs to check, challenge or adapt t
 |---|---|
 | Files | `index.html` (the tool, self-contained), `project/` (engine, page template, build and data scripts) , `SOURCES.md`, `DECISIONS.md` |
 | Status | v1, 2026-10-27. FEL-1 screening tool, not a design deliverable; vendor rating confirms the final design. |
-| Runs | Live at https://jsharpes-portfolio.netlify.app/tools/teg-contactor/, or open `index.html` in any browser, offline. Nothing is uploaded anywhere. |
+| Runs | Live at https://jsharpes-portfolio.netlify.app/#teg-tool, or open `index.html` in any browser, offline. Nothing is uploaded anywhere. |
 
 ---
 
