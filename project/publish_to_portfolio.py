@@ -33,8 +33,10 @@ ANCHOR = "<!-- END CLEANING INTERVAL -->"
 BEACON = '<script src="/assets/track.js" defer></script>'
 # Embedded in its index.html row (all site tools live on the one page): the row already shows the title,
 # so the page hides its own eyebrow/title/lede when framed. Standalone (repo copy, direct URL) is unchanged.
-EMBED = ('<script>if (window.self !== window.top) document.documentElement.classList.add("embedded");</script>\n'
-         '<style>.embedded header > .eyebrow, .embedded header > h1, .embedded header > .lede { display:none; }</style>')
+EMBED = ('<script>if (window.self !== window.top) { document.documentElement.classList.add("embedded");'
+         ' document.documentElement.dataset.theme = "light"; }</script>\n'
+         '<style>.embedded header > .eyebrow, .embedded header > h1, .embedded header > .lede { display:none; }\n'
+         '.embedded body { background: transparent; margin: 0; } .embedded .wrap { max-width: none; padding: 0 0 8px; }</style>')
 
 GH_ICON = ('<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 '
            '3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-'

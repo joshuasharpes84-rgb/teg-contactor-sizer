@@ -152,8 +152,9 @@ a.src:hover { border-color: var(--e1) }
 .seg button.lead.shift::after { color: var(--warn) }
 .linkbtn { font: inherit; color: var(--e1); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer }
 </style>
-<script>if (window.self !== window.top) document.documentElement.classList.add("embedded");</script>
-<style>.embedded header > .eyebrow, .embedded header > h1, .embedded header > .lede { display:none; }</style>
+<script>if (window.self !== window.top) { document.documentElement.classList.add("embedded"); document.documentElement.dataset.theme = "light"; }</script>
+<style>.embedded header > .eyebrow, .embedded header > h1, .embedded header > .lede { display:none; }
+.embedded body { background: transparent; margin: 0; } .embedded .wrap { max-width: none; padding: 0 0 8px; }</style>
 </head>
 <body>
 
