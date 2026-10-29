@@ -78,7 +78,7 @@ assistant with your case and it has what it needs to check, challenge or adapt t
 - **Field comparison:** structured HETP from the Eq 14-160 rule sits inside ARCO's 1991 field band at the same
   pressure and temperature; bubble-cap efficiency by the AIChE method runs above GPSA's 25–30% field values (Perry's
   warns fundamental methods over-predict).
-- **Placeholders awaiting the author's sign-off** (labelled on the page): fouling-tier effects and internals
+- **Engineering assumptions and user inputs** (no published value found; labelled on the page): fouling-tier effects and internals
   replacement intervals; discount rate 10% and life 20 years; gas-rate band; tray spacing 24 in, downcomer 10%,
   weir 50 mm.
 - **Gas composition** is illustrative (SG 0.633, sweet).

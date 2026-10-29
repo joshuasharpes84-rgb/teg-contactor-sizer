@@ -743,10 +743,10 @@ const COST_RANK = { L: 0, M: 1, H: 2 };
 // Glycol fouling tiers (tier basis: user 2026-10-26). Descriptors are qualitative (GPSA Sec 20: salt water,
 // hydrocarbons, treating chemicals, corrosion products -> foaming and losses; low pH degrades glycol). No
 // source found gives numeric glycol-quality limits or packing cleaning intervals, so every number marked
-// PROPOSED below is a placeholder awaiting Joshua's sign-off.
-//   plug          : tier >= 2 makes plugging "a real issue" (feeds the Trays vs Structured flowchart)   PROPOSED
-//   solidsMin     : minimum Table 9-18 solids-handling rating for the distributor                         PROPOSED
-//   replaceYr     : internals replacement interval, years [structured, random, bubble cap]                 PROPOSED
+// ASSUMED below is an engineering assumption (not sourced).
+//   plug          : tier >= 2 makes plugging "a real issue" (feeds the Trays vs Structured flowchart)   ASSUMED
+//   solidsMin     : minimum Table 9-18 solids-handling rating for the distributor                         ASSUMED
+//   replaceYr     : internals replacement interval, years [structured, random, bubble cap]                 ASSUMED
 // ---------------------------------------------------------------------------
 const FOUL_TIERS = [
   { name: 'Clean', desc: 'Scrubber and filters effective; no brine carryover; glycol pH held.', plug: false, solidsMin: 'P', replaceYr: { st: Infinity, rd: Infinity, bc: Infinity } },
@@ -755,7 +755,7 @@ const FOUL_TIERS = [
   { name: 'Severe', desc: 'Continuous salt or solids loading; degraded, low-pH glycol.', plug: true, solidsMin: 'VG', replaceYr: { st: 2, rd: 4, bc: 10 } },
 ];
 
-// Distributor auto-pick: drip-point type (TEG finding above, sourced), then (PROPOSED, Table 9-18) rated >= G at
+// Distributor auto-pick: drip-point type (TEG finding above, sourced), then (ASSUMED, Table 9-18) rated >= G at
 // low liquid rates (absorbers run lean), solids handling >= the tier's minimum; then best uniformity, then lowest cost.
 function pickDistributor(tier) {
   const need = RATE[FOUL_TIERS[tier].solidsMin];

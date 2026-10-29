@@ -213,7 +213,7 @@ a.src:hover { border-color: var(--e1) }
       <input id="foul" type="range" min="0" max="3" step="1" value="0">
       <div class="band"><span>Clean</span><span>Moderate</span><span>Dirty</span><span>Severe</span></div>
       <small id="foulNote"></small>
-      <details class="how"><summary>Tiers</summary><div>Tier basis set by you (2026-10-26). Descriptors are qualitative (GPSA Sec 20; vendor overhaul findings); no source found gives numeric glycol-quality limits or packing cleaning intervals. <b>Proposed, awaiting your sign-off:</b> Dirty and Severe make plugging "a real issue"; the distributor's minimum solids-handling rating; and the internals replacement intervals used in lifecycle cost.</div></details>
+      <details class="how"><summary>Tiers</summary><div>Descriptors are qualitative (GPSA Sec 20; vendor overhaul findings); no source found gives numeric glycol-quality limits or packing cleaning intervals. <b>Engineering assumptions (not sourced):</b> plugging is treated as significant at the Dirty and Severe tiers, as are the distributor's minimum solids-handling rating and the internals replacement intervals used in lifecycle cost.</div></details>
     </div>
     <details class="how"><summary>Why some inputs are typed</summary><div>Sliders carry the operating case. Typed fields are the ones you move less: the spec is a contract value, and lean purity and circulation move diameter less than 4% across their ranges. Out-of-range entries are refused, not clamped. Gas composition is fixed (illustrative, SG 0.633) until it's set.</div></details>
   </fieldset>
@@ -1287,10 +1287,10 @@ const COST_RANK = { L: 0, M: 1, H: 2 };
 // Glycol fouling tiers (tier basis: user 2026-10-26). Descriptors are qualitative (GPSA Sec 20: salt water,
 // hydrocarbons, treating chemicals, corrosion products -> foaming and losses; low pH degrades glycol). No
 // source found gives numeric glycol-quality limits or packing cleaning intervals, so every number marked
-// PROPOSED below is a placeholder awaiting Joshua's sign-off.
-//   plug          : tier >= 2 makes plugging "a real issue" (feeds the Trays vs Structured flowchart)   PROPOSED
-//   solidsMin     : minimum Table 9-18 solids-handling rating for the distributor                         PROPOSED
-//   replaceYr     : internals replacement interval, years [structured, random, bubble cap]                 PROPOSED
+// ASSUMED below is an engineering assumption (not sourced).
+//   plug          : tier >= 2 makes plugging "a real issue" (feeds the Trays vs Structured flowchart)   ASSUMED
+//   solidsMin     : minimum Table 9-18 solids-handling rating for the distributor                         ASSUMED
+//   replaceYr     : internals replacement interval, years [structured, random, bubble cap]                 ASSUMED
 // ---------------------------------------------------------------------------
 const FOUL_TIERS = [
   { name: 'Clean', desc: 'Scrubber and filters effective; no brine carryover; glycol pH held.', plug: false, solidsMin: 'P', replaceYr: { st: Infinity, rd: Infinity, bc: Infinity } },
@@ -1299,7 +1299,7 @@ const FOUL_TIERS = [
   { name: 'Severe', desc: 'Continuous salt or solids loading; degraded, low-pH glycol.', plug: true, solidsMin: 'VG', replaceYr: { st: 2, rd: 4, bc: 10 } },
 ];
 
-// Distributor auto-pick: drip-point type (TEG finding above, sourced), then (PROPOSED, Table 9-18) rated >= G at
+// Distributor auto-pick: drip-point type (TEG finding above, sourced), then (ASSUMED, Table 9-18) rated >= G at
 // low liquid rates (absorbers run lean), solids handling >= the tier's minimum; then best uniformity, then lowest cost.
 function pickDistributor(tier) {
   const need = RATE[FOUL_TIERS[tier].solidsMin];
@@ -1919,7 +1919,7 @@ function render() {
   if (cAll.some(c => c.vs.CPLsrc === 'Eq 16.58 tower' && !(c.L >= 27))) cflags.push('Platforms: both Seider forms are out of range (D under 3 ft or L under 12 ft); extrapolated.');
   $('costNote').innerHTML = `Economics project, <i>Column and internals costing</i>: Seider §16.5 at CE 567 escalated to CEPCI ${COL_CE_YEAR} (${COL_CE[COL_CE_YEAR]}, an estimate), SA-516-70 shell (ASME II-D 20.0 ksi), F<sub>BM</sub> ${COL_FBM}. `
     + `Ranges span GPSA's 1.8–3 m height allowance (the deck has none), Seider vs Peters distributor cost, and maintenance at 2–10% per year. Lifecycle = present worth at ${(eco.i * 100).toFixed(0)}% over ${eco.life} yr, with internals replaced every `
-    + `${['st', 'rd', 'bc'].map(k => `${Number.isFinite(FOUL_TIERS[tier].replaceYr[k]) ? FOUL_TIERS[tier].replaceYr[k] + ' yr' : 'never'} (${TYPES[k].split(' ')[0].toLowerCase()})`).join(', ')} at the ${FOUL_TIERS[tier].name.toLowerCase()} tier: <b>proposed intervals, not sourced</b>. `
+    + `${['st', 'rd', 'bc'].map(k => `${Number.isFinite(FOUL_TIERS[tier].replaceYr[k]) ? FOUL_TIERS[tier].replaceYr[k] + ' yr' : 'never'} (${TYPES[k].split(' ')[0].toLowerCase()})`).join(', ')} at the ${FOUL_TIERS[tier].name.toLowerCase()} tier: <b>assumed intervals, not sourced</b>. `
     + `Packed heights include the Moore–Rukovena loss at the low end of the quality class. ${cflags.length ? 'Range flags: ' + cflags.join(' ') : ''}`;
 
   $('typTab').innerHTML = [

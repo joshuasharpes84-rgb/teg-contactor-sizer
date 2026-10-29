@@ -35,4 +35,4 @@ Copyrighted PDFs are cited here but never published.
 | Plant-fitted TEG mass transfer | Filep et al., *Chem. Biochem. Eng. Q.* 36(1) 2022 | Project PDF | — |
 | Datasheet template | Coulson & Richardson, *Chemical Engineering* Vol 6, Appendix G (vessel and column tray data sheets) | Library | — |
 | Vendor rating tools (outside check) | Koch-Glitsch KG-TOWER; Sulzer SULCOL | Web | koch-glitsch.com/services/digital-services; sulzer.com |
-| Fouling-tier effects, replacement intervals, discount rate, life, gas-rate band, tray placeholders | Placeholders for the author's sign-off; no published value found | Own work | labelled on the page |
+| Fouling-tier effects, replacement intervals, discount rate, life, gas-rate band, tray placeholders | Engineering assumptions / adjustable inputs; no published value found | Own work | labelled on the page |
