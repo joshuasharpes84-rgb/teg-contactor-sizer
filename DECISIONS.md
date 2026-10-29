@@ -58,9 +58,12 @@ packing's own surface area, which is physically out of range. Onda lands within 
 lower bound on tray count. The AIChE method (Perry's Sec 13) gives 30–45% depending on weir height, against GPSA's
 field 25–30%; both are shown.
 
-**Foaming derating applied to all internals.** Perry's lists glycol contactors as foaming service (factor 0.50 for
-non-syngas service). With it, Fair's bubble-cap capacity reproduces GPSA's K-factor. Field data suggest structured
-packing needs little derating; the factor is an input.
+**Foaming derating applied to all internals, with its own factor for trays.** Perry's Table 14-9 lists glycol
+contactors as foaming service (0.73, 0.65, or 0.50 for non-syngas service). Packings default to 0.50; field data
+suggest structured packing needs little derating, so the factor is an input. Bubble-cap trays default to 0.73: at
+the base case the AIChE tray efficiency is 38% at 0.50, 28% at 0.65 and 23% at 0.73, against GPSA's 25–30% field
+values. 0.50 still reproduces GPSA's bubble-cap K-factor, so GPSA's capacity and efficiency checks point to different
+factors; the tool shows the diameter across 0.50–0.73.
 
 **Distributor: drip-point types only.** A TEG field study (Ludwig, Dean et al.) found drip-point distributors far
 superior to notched troughs and spray nozzles. An earlier proposed rule that picked a notched trough was corrected.
@@ -81,6 +84,13 @@ temperature at standard lean purity) froze the page. Fixed so the tool reports t
 
 **Wrong distributor recommendation.** The first auto-pick chose a notched trough for moderate and dirty glycol;
 the TEG field finding reversed it.
+
+**Packing re-picked at every step of a sweep.** Sweeping gas rate, pressure, temperature, spec and lean purity
+(expected trend first, then the observed one) showed structured-packing diameter and height moving the wrong way, for
+example diameter falling from 10 to 15 MMSCFD. Cause: the auto-pick re-ranks packings at each case, and the top
+candidates sit within about 1% on cost, so the pick switches and the size moves with it. With the packing held fixed,
+every trend is physical (diameter ∝ √rate, height flat with rate, both falling with pressure). Bubble-cap trays and
+random packing were physical throughout.
 
 **Datasheet field placement.** The template pages sit inside a larger PDF media box; values were positioned against
 the visible page instead.

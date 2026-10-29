@@ -65,10 +65,15 @@ assistant with your case and it has what it needs to check, challenge or adapt t
 6. **Distributor:** drip-point types only (a TEG field study found them "far superior to a notched trough or spray
    nozzle"), then Ludwig Table 9-18 ratings against the fouling tier. Maldistribution checks (Moore & Rukovena;
    Lockett & Billingham) show this service is insensitive.
-7. **Cost:** shell by ASME UG-27 thickness (SA-516-70, II-D stress) → weight → Seider tower/vessel correlations;
+7. **Vessel height:** tangent-to-tangent length = internals height (packed bed or tray stack) + GPSA Sec 20's
+   1.8–3 m allowance for gas disengagement, liquid distribution and the bottom sump. The methodology deck has no
+   overall-height step, so this is a flagged deck gap. The sump is not sized from a liquid residence time; the
+   allowance stands in for it. Cost reports the range across 1.8–3 m, the packing ranking uses the midpoint, and
+   the datasheet length uses the upper 3 m.
+8. **Cost:** shell by ASME UG-27 thickness (SA-516-70, II-D stress) → weight → Seider tower/vessel correlations;
    trays, packing and distributors (Seider §16.5, Peters, Bravo); bare module ×4.16; lifecycle = present worth of
    maintenance (2–10%/yr) and internals replacement at the fouling tier's interval.
-8. **Datasheet:** fills Coulson & Richardson Vol 6 Appendix G (vessel data sheet, plus the column tray data sheet
+9. **Datasheet:** fills Coulson & Richardson Vol 6 Appendix G (vessel data sheet, plus the column tray data sheet
    for bubble caps) with the current design, as a PDF.
 
 ## 3. What to trust, and what not

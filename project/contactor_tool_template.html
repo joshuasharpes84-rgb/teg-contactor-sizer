@@ -234,11 +234,11 @@ a.src:hover { border-color: var(--e1) }
       <details class="how"><summary>Method</summary><div>MOC methodology, segmented by component (Step 1a): the shell is carbon steel with a corrosion allowance; the packing is stainless, because thin packing sheet can't carry a corrosion allowance (Step 6) and CO₂ in the gas (composition still open) is the governing unknown (Step 2). See the MOC panel. For random packing the material sets the minimum wetting rate (<i>Liquid Wetting Rates</i>: Table 9-25 when the MOC is listed).</div></details>
     </div>
     <div class="ctl">
-      <span class="lab">Foaming system factor (flood derating)</span>
+      <span class="lab">Foaming system factor (flood derating) · <span id="sfFor">packings</span></span>
       <div class="seg" id="sf" role="group" aria-label="Foaming system factor">
         <button type="button" data-v="1">None</button><button type="button" data-v="0.73">0.73</button><button type="button" data-v="0.65">0.65</button><button type="button" data-v="0.5" aria-pressed="true">0.50</button>
       </div>
-      <details class="how"><summary>Method</summary><div>Perry's 9th Table 14-9 lists glycol contactors as heavy-foaming: 0.73 (ref 1), 0.65 (refs 3, 4), 0.50 (ref 2: "0.65 for glycol contactors in synthesis gas service, 0.5 for others"). Natural gas is "others", so 0.50 is the default. Fair's tray flood correlation is valid only for "low or nonfoaming" systems without it, and Perry's applies the same derating to packings. The overview reports diameter across all three values.</div></details>
+      <details class="how"><summary>Method</summary><div>Perry's 9th Table 14-9 lists glycol contactors as heavy-foaming: 0.73 (ref 1), 0.65 (refs 3, 4), 0.50 (ref 2: "0.65 for glycol contactors in synthesis gas service, 0.5 for others"). Natural gas is "others", so packings default to 0.50. Bubble-cap trays default to 0.73: with it the AIChE tray efficiency lands at about GPSA's 25–30% field values, where 0.50 over-predicts it (about 38% at the base case). Each family keeps its own factor; this control edits the one shown. Fair's tray flood correlation is valid only for "low or nonfoaming" systems without it, and Perry's applies the same derating to packings. The overview reports diameter across all three values.</div></details>
     </div>
   </fieldset>
 
@@ -514,7 +514,9 @@ a.src:hover { border-color: var(--e1) }
 <script>
 (() => {
 const $ = id => document.getElementById(id);
-const ST0 = { avg: 'geo', area: 'onda', fb: 'm2', dl: 'tc', typ: 'st', sf: 0.5, teff: 'aiche', dq: 'hp' };
+// Foaming factor per family: packings 0.50 (Table 14-9 ref 2, non-syngas glycol); bubble-cap trays 0.73 (ref 1), which
+// brings the AIChE tray efficiency to GPSA's 25-30% field range (0.50 gave ~38% at the base case). st.sf = packing value.
+const ST0 = { avg: 'geo', area: 'onda', fb: 'm2', dl: 'tc', typ: 'st', sf: 0.5, sfBc: 0.73, teff: 'aiche', dq: 'hp' };
 const st = { ...ST0 };
 const fmt = (v, d = 2) => Number.isFinite(v) ? v.toFixed(d) : '∞';
 let B = basis();
@@ -542,7 +544,11 @@ function segInit(id, key, num) {
     render();
   });
 }
-segInit('avg', 'avg'); segInit('area', 'area'); segInit('fb', 'fb'); segInit('dl', 'dl'); segInit('typ', 'typ'); segInit('sf', 'sf', true); segInit('teff', 'teff'); segInit('dq', 'dq');
+segInit('avg', 'avg'); segInit('area', 'area'); segInit('fb', 'fb'); segInit('dl', 'dl'); segInit('typ', 'typ');
+$('sf').addEventListener('click', e => {                         // edits the factor of the family on screen
+  const b = e.target.closest('button'); if (!b) return;
+  st[st.typ === 'bc' ? 'sfBc' : 'sf'] = +b.dataset.v; render();
+}); segInit('teff', 'teff'); segInit('dq', 'dq');
 ['Q', 'P', 'T', 'Wout', 'wLean', 'circ', 'flood', 'dp', 'pk', 'spk', 'surf', 'tsp', 'tfl', 'adf', 'liq', 'corr', 'dpc', 'gpsa', 'foul', 'dist', 'weir', 'marr', 'life'].forEach(id => $(id).addEventListener('input', render));
 
 // ---------------------------------------------------------------------------
@@ -771,7 +777,7 @@ function render() {
   const dpRd = st.dpVal?.rd ?? 0.4, dpSt = st.dpVal?.st ?? 0.5;
   const o = { fracFlood: +$('flood').value, dPallow: dpRd, dPallowSt: dpSt, surface: $('surf').value,
               liquidSide: $('liq').checked, dlMethod: st.dl, rSolute: 1.4e-10, area: st.area, floodBasis: st.fb,
-              sf: st.sf, trayIn: +$('tsp').value, trayFlood: +$('tfl').value, adFrac: +$('adf').value,
+              sf: st.sf, sfTray: st.sfBc, trayIn: +$('tsp').value, trayFlood: +$('tfl').value, adFrac: +$('adf').value,
               trayEff: st.teff, weirMm: typed('weir', 0.15 * +$('tsp').value * 25.4) };
   const tier = +$('foul').value, corr = $('corr').checked, dpCrucial = $('dpc').checked;
   const eco = { i: typed('marr') / 100, life: typed('life'), trayMat: { ss: 'ss303', treated: 'ss303', cs: 'cs', none: 'cs' }[o.surface] };
@@ -841,10 +847,14 @@ function render() {
   const sfAll = [0.73, 0.65, 0.5];
   const spread = f => { const v = sfAll.map(s => f({ ...o, sf: s })); return [Math.min(...v), Math.max(...v)]; };
   const dSt = spread(oo => structuredDesign(B, wLean, circ, sKey, oo).D_ft);
-  const dBc = spread(oo => trayDesign(B, wLean, circ, oo, Ng, kd).D_ft);
+  const dBc = spread(oo => trayDesign(B, wLean, circ, { ...oo, sfTray: oo.sf }, Ng, kd).D_ft);
   const dRd = spread(oo => rateBased(B, wLean, circ, pkKey, oo).H.D_ft);
   const rdOther = rateBased(B, wLean, circ, pkKey, { ...o, floodBasis: st.fb === 'm1' ? 'm2' : 'm1' });
   const sfTxt = st.sf === 1 ? 'no foaming factor' : `system factor ${st.sf}`;
+  const sfTxtBc = st.sfBc === 1 ? 'no foaming factor' : `system factor ${st.sfBc}`;
+  const sfCur = typ === 'bc' ? st.sfBc : st.sf;
+  $('sf').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.v === sfCur));
+  $('sfFor').textContent = typ === 'bc' ? 'bubble-cap trays' : 'packings';
   const pkName = PACKINGS[pkKey].name.replace(/ \([^)]*\)/, ''), SURF = { ceramic: 'unglazed ceramic', pp: 'polypropylene' };
   const surfName = SURF[H.surf] || MAT[o.surface];
 
@@ -902,7 +912,7 @@ function render() {
       ['Packed height', `HETP × N: <b>${rng(zSt[0], zSt[1], 1)} m</b>`, '–', `1.5 m × N: ${rng(1.5 * Ng, 1.5 * Nk, 1)} m`],
     ],
     bc: [
-      ['Diameter', `Fair, ${Math.round(100 * o.trayFlood)}% flood, ${sfTxt}: <b>${fmt(td.D_ft)} ft</b>`, `SF 0.50–0.73: ${rng(dBc[0], dBc[1])} ft`, `K ${bcK[1]} m/s at ${bcK[0]} cm (Fig 20-60): ${fmt(dFromC(bcK[1]))} ft`],
+      ['Diameter', `Fair, ${Math.round(100 * o.trayFlood)}% flood, ${sfTxtBc}: <b>${fmt(td.D_ft)} ft</b>`, `SF 0.50–0.73: ${rng(dBc[0], dBc[1])} ft`, `K ${bcK[1]} m/s at ${bcK[0]} cm (Fig 20-60): ${fmt(dFromC(bcK[1]))} ft`],
       ['Tray efficiency', td.method === 'aiche' ? `AIChE, ${o.weirMm} mm weir: <b>${(100 * td.E).toFixed(0)}%</b>` : `O'Connell (Fig 14-9): <b>${td.lowerBound ? '≥ ' : ''}${(100 * td.E).toFixed(0)}%</b>${td.lowerBound ? ' (off chart)' : ''}`, td.method === 'aiche' ? `O'Connell ≥ ${(100 * td.Eoc).toFixed(0)}% (off chart)` : `AIChE ${(100 * td.ai.EOC).toFixed(0)}%`, '25–30%'],
       ['Actual trays', `N / E: <b>${td.trays}${td.lowerBound ? ' (lower bound)' : ''}</b>`, `on Kremser N: ${Number.isFinite(Nk) ? Math.ceil(Nk / td.E) : '–'}`, `${gTrays[0]}–${gTrays[1]} trays at 0.6 m spacing`],
       ['Tray section', `<b>${fmt(td.height, 1)} m</b>`, '–', `${fmt(gTrays[0] * 0.6, 1)}–${fmt(gTrays[1] * 0.6, 1)} m`],
@@ -1010,7 +1020,7 @@ function render() {
   $('bcTab').innerHTML = [
     ['Flow parameter', 'Eq 14-89', FP.toFixed(4), 'Mass L/G × (ρ<sub>G</sub>/ρ<sub>L</sub>)<sup>0.5</sup>, same as the packed F<sub>P</sub>.'],
     ['Flood capacity C<sub>sbf</sub>', 'Eq 14-90 (Fair, Fig 14-32)', `${td.Csbf.toFixed(4)} m/s`, `Tray spacing ${o.trayIn} in (${td.TS.toFixed(0)} mm). Perry's: "may be used for sieve, valve, or bubble-cap trays".`],
-    ['Net-area flood velocity', 'Eq 14-91', `${(td.Unf / st.sf).toFixed(3)} → ${td.Unf.toFixed(3)} m/s`, `σ correction (σ/20)<sup>0.2</sup> at ${(B.liq.sigma * 1000).toFixed(0)} mN/m, then × ${st.sf} (Table 14-9, glycol contactors). Fair's restriction 1 is "low or nonfoaming".`],
+    ['Net-area flood velocity', 'Eq 14-91', `${(td.Unf / st.sfBc).toFixed(3)} → ${td.Unf.toFixed(3)} m/s`, `σ correction (σ/20)<sup>0.2</sup> at ${(B.liq.sigma * 1000).toFixed(0)} mN/m, then × ${st.sfBc} (Table 14-9, glycol contactors). Fair's restriction 1 is "low or nonfoaming".`],
     ['Operating velocity, areas', 'p.14-35 (80–90% of flood)', `${td.Un.toFixed(3)} m/s · A<sub>N</sub> ${td.AN.toFixed(2)} m² · A<sub>T</sub> ${td.AT.toFixed(2)} m²`, `Downcomer ${Math.round(100 * o.adFrac)}% of tower area (placeholder). D = ${fmt(td.D_ft)} ft (${(td.D * 1000).toFixed(0)} mm).`],
     ['O\'Connell parameter', 'Fig 14-9, P/(Hμ) = ρ<sub>L</sub>/(K M μ<sub>L</sub>)', td.X.toFixed(1), `K ${td.K.toExponential(2)} (geometric mean of the column ends), M ${td.M.toFixed(0)}, μ ${(B.liq.mu * 1000).toFixed(1)} cP, ρ<sub>L</sub> ${(B.liq.rho * RHO_TO_LBFT3).toFixed(1)} lb/ft³.`],
     ["O'Connell efficiency (reference)", 'Fig 14-9', `${td.offChart ? '≥ ' : ''}${(100 * td.Eoc).toFixed(0)}%`, td.offChart ? 'Off chart: the curve ends at 10 (about 63%). Water into TEG is very soluble (small K) and viscous, which puts it beyond the hydrocarbon-absorber data the chart was built on.' : 'In range.'],
@@ -1088,7 +1098,7 @@ function render() {
         ['HETP', `${fmt(sd.hetp)} m (Perry's rule)`, '≈ 1.5 m (Ex 20-11: 2 stages ≅ 3 m)', `${(100 * (sd.hetp / 1.5 - 1)).toFixed(0)}% vs GPSA. The rule carries the glycol σ and λ corrections for these conditions.`],
       ],
       bc: [
-        ['Capacity factor', `${td.Cs.toFixed(3)} m/s on the total area (${sfTxt})`, `K ${bcK[1]} m/s at ${bcK[0]} cm spacing`, `Without the foaming factor Fair gives ${(td.Cs / st.sf).toFixed(3)} m/s. GPSA's K is ${(100 * bcK[1] / (td.Cs / st.sf)).toFixed(0)}% of that.`],
+        ['Capacity factor', `${td.Cs.toFixed(3)} m/s on the total area (${sfTxtBc})`, `K ${bcK[1]} m/s at ${bcK[0]} cm spacing`, `Without the foaming factor Fair gives ${(td.Cs / st.sfBc).toFixed(3)} m/s. GPSA's K is ${(100 * bcK[1] / (td.Cs / st.sf)).toFixed(0)}% of that.`],
         ['Diameter', `${fmt(td.D_ft)} ft`, `${fmt(dFromC(bcK[1]))} ft from K`, ''],
         ['Tray efficiency', `${td.offChart ? '≥ ' : ''}${(100 * td.E).toFixed(0)}% (O'Connell${td.offChart ? ', off chart' : ''})`, '25–30%', `AIChE gives ${(100 * td.ai.EOC).toFixed(0)}%, ${(100 * td.ai.EOC / 0.275 - 100).toFixed(0)}% above GPSA's midpoint: the over-prediction Perry's warns of. GPSA's field value is under half of O'Connell's chart ceiling, which does not hold for TEG.`],
         ['Trays · tray section', `${td.trays} · ${fmt(td.height, 1)} m`, `${gTrays[0]}–${gTrays[1]} trays · ${fmt(gTrays[0] * 0.6, 1)}–${fmt(gTrays[1] * 0.6, 1)} m at 0.6 m`, ''],
@@ -1118,10 +1128,10 @@ function render() {
 
   // ---- Findings (proposed deck changes; slide titles, not numbers) ----
   const dlSpread = ['tc', 'wc', 'ol'].map(kk => diffLiq(B, kk) * 1e4);
-  const bcNoSf = td.Cs / st.sf;
+  const bcNoSf = td.Cs / st.sfBc;
   $('findings').innerHTML = [
     `<b>No structured-packing or tray sizing steps in the decks.</b> Proposed from Perry's 9th Sec 14: structured flood by Kister–Gill (Eq 14-142 on Fig 14-56) and HETP by Eq 14-160; bubble-cap flood by Fair (Eq 14-90/91) and efficiency by O'Connell (Fig 14-9). Without them the Internals Selection Map recommends internals the deck cannot size.`,
-    `<b>Glycol contactors are foaming service.</b> Perry's Table 14-9 gives system factors of 0.73, 0.65 and 0.50 (0.50 for non-syngas glycol contactors). With 0.50 applied, Fair's bubble-cap capacity (${(bcNoSf * 0.5).toFixed(3)} m/s) reproduces GPSA's K (0.049 m/s at 60 cm). The deck asks about foaming only on the tray branch.`,
+    `<b>Glycol contactors are foaming service.</b> Perry's Table 14-9 gives system factors of 0.73, 0.65 and 0.50 (0.50 for non-syngas glycol contactors). GPSA's two bubble-cap checks point to different factors: at 0.50 Fair's capacity (${(bcNoSf * 0.5).toFixed(3)} m/s) reproduces GPSA's K (0.049 m/s at 60 cm), but AIChE efficiency matches GPSA's 25–30% field values only near 0.65–0.73 (0.50's larger, slower tray over-predicts it). Trays default to 0.73 (efficiency basis, more trays, conservative height); the diameter range over 0.50–0.73 is shown. The deck asks about foaming only on the tray branch.`,
     (() => { const s1 = structuredDesign(B, wLean, circ, sKey, { ...o, sf: 1 }); return `<b>GPSA's structured C-factor implies little or no foaming derating.</b> Its 0.091–0.122 m/s is ${(100 * 0.091 / s1.CsFlood).toFixed(0)}–${(100 * 0.122 / s1.CsFlood).toFixed(0)}% of the underated Kister–Gill flood C-factor for ${s1.pk.name} (${s1.CsFlood.toFixed(3)} m/s), which is above every Table 14-9 factor. The same table reproduces GPSA's bubble-cap K. Either structured packing tolerates TEG foaming better, or GPSA runs structured packing closer to flood; neither source says which.`; })(),
     `<b>Tray efficiency now runs on the AIChE method</b> (Perry's 9th Eqs 13-72 to 13-78 → Fig 14-42 → Eqs 14-137, 14-135): E<sub>OC</sub> ${(100 * td.ai.EOC).toFixed(0)}% at a ${o.weirMm} mm weir, against GPSA's field 25–30% (Perry's: fundamental methods over-predict). O'Connell (≈ ${td.X.toFixed(0)}, chart ends at 10 ≈ 63%) is off chart and kept for reference. Proposed deck step: AIChE efficiency with the field value as the check.`,
     `<b>Distributor quality barely moves height here.</b> Moore–Rukovena (Perry's Fig 14-63b) loses ~0 stages below 2 stages per bed, and Lockett–Billingham f<sub>max</sub> is ${fmt(fm.f)} (${fm.cls}) because circulation runs ${(circ / fm.cmin).toFixed(0)}× the pinch minimum. Distributor choice matters through plugging (the top cause in <i>Liquid Distributor Heuristics</i>' failure table), low-liquid-rate rating and cost.`,
@@ -1214,7 +1224,7 @@ async function downloadDatasheet() {
       const matShort = { ss: 'SS 304L/316L', cs: 'Carbon steel', treated: 'Treated metal', none: 'per MOC' }[L.surf];
       put(1, 412, 260, matShort); put(1, 412, 275, matShort); put(1, 412, 349, 'Yes');
       [`Bubble-cap trays; ${td.trays} actual on ${L.Ng.toFixed(2)} theoretical stages at E_OC ${(100 * td.E).toFixed(0)}% (${td.method === 'aiche' ? 'AIChE, Perry\'s Sec 13' : "O'Connell"}); field 25-30% (GPSA).`,
-       `Design ${Math.round(L.o.trayFlood * 100)}% of Fair flood with foaming factor ${st.sf}; downcomer ${Math.round(L.o.adFrac * 100)}% of area; weir ${L.o.weirMm} mm.`,
+       `Design ${Math.round(L.o.trayFlood * 100)}% of Fair flood with foaming factor ${st.sfBc}; downcomer ${Math.round(L.o.adFrac * 100)}% of area; weir ${L.o.weirMm} mm.`,
        'Vapour = wet gas in at bottom, dry gas out at top; liquid = lean TEG in at top, rich TEG out at bottom. Rates in lb/hr, densities lb/ft3.',
        `FEL-1 screening, TEG Contactor Sizer ${new Date().toISOString().slice(0, 10)}. Tray supplier to confirm layout and efficiency.`,
       ].forEach((t, i) => put(1, 107, 465 + 7.7 * i, t, 5.4));

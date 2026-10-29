@@ -664,7 +664,7 @@ function trayDesign(B, wLean, galPerLb, o, Ntheo, kd) {
   const FLG = (S.m / mG) * Math.sqrt(rhoG / rhoL);
   const TS = o.trayIn * 25.4;
   const Csbf = 0.0105 + 8.127e-4 * Math.pow(TS, 0.755) * Math.exp(-1.463 * Math.pow(FLG, 0.842));
-  const Unf = Csbf * Math.pow(sig / 20, 0.2) * Math.sqrt((rhoL - rhoG) / rhoG) * o.sf;
+  const Unf = Csbf * Math.pow(sig / 20, 0.2) * Math.sqrt((rhoL - rhoG) / rhoG) * (o.sfTray ?? o.sf); // trays carry their own factor
   const Un = o.trayFlood * Unf, AN = mG / (rhoG * Un), AT = AN / (1 - o.adFrac), D = Math.sqrt(4 * AT / Math.PI);
   // O'Connell parameter at the mean liquid: K geometric mean of the two ends, M of the mean solution
   const xm = 0.5 * (S.x0 + kd.xN), K = Math.sqrt(kd.Ktop * kd.Kbot);
